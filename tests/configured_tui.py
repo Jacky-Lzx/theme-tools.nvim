@@ -62,6 +62,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         check_backgrounds(term, False)
         assert term.lua("return require('lazy.core.config').plugins['theme-tools.nvim'].dir") == str(Path(__file__).resolve().parent.parent)
         assert term.lua("return require('lazy.core.config').plugins.catppuccin == nil")
+        term.lua("dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_integrations.lua')")
         assert term.lua("local p=require('theme_tools.providers.catppuccin').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('catppuccin').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
         assert term.lua("return vim.fn.maparg('<leader>ut','n')") == "<Cmd>ThemeTools<CR>"
         term.keys(b" ut")

@@ -41,6 +41,14 @@ to require("catppuccin").setup(). No separate Catppuccin plugin spec is needed.
 Use catppuccin=false to disable both managed installation and configuration.
 Installation is independent of the themes picker list.
 
+When Lazy and vim.loader are active, integration detection uses Lazy's existing
+plugin inventory plus native vim.pack packages. Catppuccin receives resolved
+integration options with its own auto-detection disabled for that setup. Explicit
+integration settings retain upstream precedence. The inventory is read on each
+setup; plugin/profile changes are not cached. Pckr, disabled module caching and
+unrecognized environments retain the normal upstream detector. Catppuccin's own
+compiled theme cache and ColorScheme events remain in use.
+
 The first download requires Git and network access. Subsequent startups reuse
 the installed revision without invoking Git or fetching. Source checkouts live
 under install.root/catppuccin/<commit>. A temporary directory is checked out and

@@ -21,7 +21,12 @@ function M.load(install, opts)
     end
   end
   local ok, reason = pcall(function()
-    require("catppuccin").setup(opts)
+    local catppuccin = require("catppuccin")
+    local resolved = opts
+    if catppuccin.default_options and opts.auto_integrations ~= false then
+      resolved = require("theme_tools.providers.integrations").resolve(catppuccin, opts)
+    end
+    catppuccin.setup(resolved)
   end)
   if not ok then
     return nil, tostring(reason)

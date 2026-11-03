@@ -43,6 +43,10 @@ fetches the upstream source into `stdpath("data")/theme-tools/themes/catppuccin/
 at its pinned commit, adds it to runtimepath, and calls its setup with your
 `catppuccin` options. You do not need a separate Catppuccin plugin-manager entry.
 Existing checkouts are reused without fetching on subsequent startups.
+With Lazy and `vim.loader`, installed plugins are read from the existing inventory
+to resolve Catppuccin integrations without probing unused package managers.
+Explicit integration options keep their upstream precedence; other environments
+use Catppuccin's detector.
 
 Keep startup colorscheme selection here: a later `vim.cmd.colorscheme(...)` in
 your config would override the restored selection. See [examples/lazy.lua](examples/lazy.lua)
