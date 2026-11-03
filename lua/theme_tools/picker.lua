@@ -25,7 +25,7 @@ local function layout(opts)
       height = 1,
       style = "minimal",
       border = opts.border,
-      title = " Filter themes ",
+      title = opts.apply == false and " Filter groups " or " Filter themes ",
       title_pos = "center",
       zindex = 60,
     },
@@ -37,9 +37,9 @@ local function layout(opts)
       height = height,
       style = "minimal",
       border = opts.border,
-      title = " Themes ",
+      title = " " .. (opts.prompt or "Themes") .. " ",
       title_pos = "center",
-      footer = " Enter: apply  Esc: cancel ",
+      footer = opts.apply == false and " Enter: open  Esc: cancel " or " Enter: apply  Esc: cancel ",
       footer_pos = "center",
       focusable = false,
       zindex = 60,
@@ -64,7 +64,7 @@ local function finish(session, accept)
       vim.api.nvim_buf_delete(buf, { force = true })
     end
   end
-  if not accept then
+  if not accept and session.opts.preview ~= false then
     colors.restore(session.original)
   end
 end
@@ -107,7 +107,7 @@ local function render(session)
   if theme then
     vim.api.nvim_buf_set_extmark(session.list_buf, ns, session.index - 1, 0, { line_hl_group = "PmenuSel" })
     vim.api.nvim_win_set_cursor(session.list_win, { session.index, 0 })
-    if session.previewed ~= theme.name then
+    if session.opts.preview ~= false and session.previewed ~= theme.name then
       local ok, err = colors.apply(theme)
       if ok then
         session.previewed = theme.name
@@ -116,7 +116,7 @@ local function render(session)
         notify(err)
       end
     end
-  elseif session.previewed then
+  elseif session.previewed and session.opts.preview ~= false and not session.opts.retain_preview then
     colors.restore(session.original)
     session.previewed = nil
   end
@@ -156,6 +156,7 @@ function M.open(themes, current, opts, confirm)
   end
   local session = {
     themes = themes,
+    opts = opts,
     matches = themes,
     index = 1,
     original = colors.snapshot(),
@@ -224,13 +225,23 @@ function M.open(themes, current, opts, confirm)
   for _, key in ipairs({ "<Esc>", "<C-c>" }) do
     map(key, M.close)
   end
+  if opts.on_group then
+    map("<C-g>", opts.on_group)
+  end
   map("<CR>", function()
     if active ~= session then
       return
     end
     filter(session)
     local theme = session.matches[session.index]
-    if theme and session.previewed == theme.name then
+    if theme then
+      if opts.apply ~= false and session.previewed ~= theme.name then
+        local applied, reason = colors.apply(theme)
+        if not applied then
+          notify(reason)
+          return
+        end
+      end
       finish(session, true)
       confirm(theme)
     end

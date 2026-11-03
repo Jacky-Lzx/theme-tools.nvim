@@ -14,5 +14,6 @@ export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 python3 tests/ui.py
 python3 tests/selection_ui.py
+python3 tests/groups_ui.py
 python3 tests/tui.py
 stylua --check lua plugin colors scripts tests examples

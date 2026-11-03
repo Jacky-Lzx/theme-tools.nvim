@@ -1,15 +1,16 @@
 # theme-tools.nvim
 
 Theme installation and live colorscheme switching for Neovim 0.11+. An independent,
-personal Mocha theme is included, and Catppuccin is available as a managed source.
+personal Mocha theme is included, with Catppuccin and Dracula as managed sources.
 Search themes, preview them across the editor, and keep the one you like.
 
 - Moving through the picker immediately applies the highlighted theme.
+- Dark and light themes have separate lists; category navigation never previews.
 - Enter confirms and remembers your choice for the next startup.
 - Escape or Ctrl-C restores the original colorscheme, background, custom
   highlights and terminal palette globals.
 - Direct switching, cycling, command completion and a Lua API are included.
-- Catppuccin downloads once at a fixed revision and works offline afterward.
+- Managed themes download once at fixed revisions and work offline afterward.
 - Independent Mocha applies generated highlights directly, without loading Catppuccin.
 - Restoring an unchanged saved choice skips writing state; picker UI loads on demand.
 
@@ -25,9 +26,11 @@ For a local checkout with lazy.nvim:
   priority = 1000,
   opts = {
     catppuccin = { transparent_background = true },
+    dracula = { transparent_bg = true },
     default = "theme-tools-mocha",
     themes = {
       "theme-tools-mocha",
+      "dracula",
       "catppuccin-latte",
       "catppuccin-frappe",
       "catppuccin-macchiato",
@@ -47,11 +50,18 @@ at its pinned commit, adds it to runtimepath, and calls its setup with your
 Existing checkouts are reused without fetching. Starting with another theme skips
 Catppuccin installation, setup, integration detection and compiled-cache checks.
 Picker previews and direct `:colorscheme catppuccin-mocha` calls initialize it on
-demand, once per setup. `:ThemeToolsInstall` explicitly installs and reconfigures it.
+demand, once per setup. `:ThemeToolsInstall` explicitly installs and reconfigures
+all enabled managed sources.
 With Lazy and `vim.loader`, installed plugins are read from the existing inventory
 to resolve Catppuccin integrations without probing unused package managers.
 Explicit integration options keep their upstream precedence; other environments
 use Catppuccin's detector.
+
+[Dracula](https://github.com/Mofiqul/dracula.nvim) follows the same download and
+lazy initialization flow, under `stdpath("data")/theme-tools/themes/dracula/`.
+Register `dracula` (or `dracula-soft`) and pass upstream setup options in `dracula`.
+Selecting Dracula initializes only its source. Independent Mocha starts without
+loading either managed source. Set `dracula = false` to disable this provider.
 
 Keep startup colorscheme selection here: a later `vim.cmd.colorscheme(...)` in
 your config would override the restored selection. See [examples/lazy.lua](examples/lazy.lua)
@@ -91,7 +101,7 @@ restores the opening palette. Existing selection-tools key bindings apply.
 
 ## Use
 
-Run `:ThemeTools` and type to filter. The builtin picker matches every
+Run `:ThemeTools` and type to filter within the current brightness group. The builtin picker matches every
 space-separated word against the name, label and colorscheme, ignoring case.
 The selection-tools backend uses its configured matching and key bindings.
 
@@ -101,12 +111,27 @@ The selection-tools backend uses its configured matching and key bindings.
 | Up / Ctrl-P / Shift-Tab | Preview the previous match |
 | Enter | Confirm and save |
 | Escape / Ctrl-C | Cancel and restore |
+| Ctrl-G | Open the theme category menu; Enter opens a category |
 | `:ThemeTools catppuccin-latte` | Apply a theme by its registered name |
 | `:ThemeToolsNext` / `:ThemeToolsPrev` | Cycle the configured order, wrapping at the ends |
 
 Builtin picker navigation stops at the first and last match. Leaving or closing the
 picker cancels it. The picker fits terminal resizes and closes when space is too
 small. No global mappings are installed.
+
+The picker opens the active theme's **Dark** or **Light** list. Moving or searching
+inside one list cannot select a theme from the other. Press **Ctrl-G**, choose a
+category, then press Enter to browse it. Merely highlighting a category keeps the
+editor palette unchanged. Empty search results retain the last preview, avoiding
+brightness changes while typing. Cancelling restores the theme active when the
+picker opened; category selection is never saved as a theme choice.
+
+Independent Mocha, the four Catppuccin variants, Dracula and Dracula Soft have
+built-in background metadata. Give other registered themes `background = "dark"`
+or `"light"` to classify them. Unknown themes appear under **Unclassified**, where
+they apply only on Enter, so browsing an unknown theme cannot unexpectedly flash
+the screen. Set `picker.group_by_background = false` to use the previous combined
+list with automatic previews for every theme.
 
 For installation paths, theme options, custom labels, light/dark variants, persistence and
 events, see the [configuration reference](doc/theme-tools.txt) or

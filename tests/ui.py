@@ -37,7 +37,7 @@ try:
       vim.api.nvim_buf_set_lines(source,0,-1,false,{'local answer = 42','return answer'})
       vim.bo.filetype='lua'; vim.cmd('syntax on')
       path=vim.fn.tempname()
-      t.setup({catppuccin=false,state_file=path,themes={'habamax','morning','desert'}})
+      t.setup({catppuccin=false,state_file=path,picker={group_by_background=false},themes={'habamax','morning','desert'}})
       assert(t.set('habamax'))
       vim.api.nvim_set_hl(0,'UserCustom',{fg='#123456',bold=true})
       original=colors.snapshot()
@@ -121,7 +121,7 @@ try:
         ui.request("nvim_exec_lua", ["vim.opt.rtp:prepend(...)", [catppuccin]])
         lua("""
           require('catppuccin').setup({auto_integrations=false,integrations={}})
-          t.setup({catppuccin=false,persist=false,themes={'catppuccin-mocha','catppuccin-latte','catppuccin-frappe','catppuccin-macchiato'}})
+          t.setup({catppuccin=false,persist=false,picker={group_by_background=false},themes={'catppuccin-mocha','catppuccin-latte','catppuccin-frappe','catppuccin-macchiato'}})
           assert(t.set('catppuccin-mocha')); assert(t.pick())
         """)
         keys("<Down>")

@@ -11,6 +11,8 @@ vim.fn.writefile({
   'vim.api.nvim_set_hl(0, "BrokenOnly", {fg="#ff0000"})',
   'vim.api.nvim_set_hl(0, "UserDefault", {fg="#ff0000"})',
   'vim.g.terminal_color_0 = "#ff0000"',
+  'vim.g.terminal_color_background = "#ff0000"',
+  'vim.g.terminal_color_foreground = "#ffffff"',
   'error("intentional broken theme")',
 }, root .. "/colors/broken.lua")
 vim.fn.writefile({ 'vim.cmd.runtime("colors/desert.vim")' }, root .. "/colors/alias.lua")
@@ -54,6 +56,7 @@ for name, value in pairs(snapshot.highlights) do
   assert(vim.deep_equal(actual, value), "highlight not restored: " .. name .. " " .. vim.inspect({ actual, value }))
 end
 assert(vim.g.terminal_color_0 == "#abcdef")
+assert(vim.g.terminal_color_background == nil and vim.g.terminal_color_foreground == nil)
 assert(vim.tbl_isempty(vim.api.nvim_get_hl(0, { name = "BrokenOnly" })))
 assert(theme.current() == "night")
 assert(not theme.set("missing"))
@@ -98,6 +101,8 @@ assert(vim.fn.exists(":ThemeTools") == 2 and vim.fn.exists(":ThemeToolsNext") ==
 assert(vim.tbl_contains(vim.fn.getcompletion("ThemeTools hab", "cmdline"), "habamax"))
 assert(not pcall(theme.setup, { themes = { {} } }))
 assert(not pcall(theme.setup, { picker = { width = 0 } }))
+assert(not pcall(theme.setup, { picker = { group_by_background = "dark" } }))
+assert(not pcall(theme.setup, { dracula = true }))
 -- No colors_name: restore a manually constructed palette too.
 vim.g.colors_name = nil
 vim.api.nvim_set_hl(0, "Normal", { fg = "#aabbcc", bg = "#112233" })

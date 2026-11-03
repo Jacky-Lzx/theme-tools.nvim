@@ -33,7 +33,7 @@ function M.open(themes, current, opts, confirm)
       return nil, "Theme picker is closed"
     end
     if not theme then
-      if session.previewed then
+      if session.previewed and not opts.retain_preview and opts.preview ~= false then
         colors.restore(session.original)
         session.previewed = nil
       end
@@ -49,13 +49,14 @@ function M.open(themes, current, opts, confirm)
     return ok, err
   end
   local spec = vim.tbl_deep_extend("force", {}, opts.selection or {}, {
-    prompt = "Themes",
+    prompt = opts.prompt or "Themes",
     kind = "theme_tools",
     resume = false,
     multi = false,
     preview = { enabled = false },
     item_icons = false,
     keys = {
+      theme_groups = opts.on_group and { "<C-g>" } or {},
       split = {},
       vsplit = {},
       tab = {},
@@ -66,6 +67,7 @@ function M.open(themes, current, opts, confirm)
       system_open = {},
       details = {},
     },
+    actions = { theme_groups = opts.on_group or function() end },
     format_item = function(theme)
       local label = theme.label or theme.name
       if label ~= theme.name then
@@ -78,6 +80,9 @@ function M.open(themes, current, opts, confirm)
     end,
     on_change = function(theme, _, picker)
       session.picker = picker
+      if opts.preview == false then
+        return
+      end
       local ok, err = preview(theme)
       if not ok and session.failed ~= (theme and theme.name) then
         session.failed = theme and theme.name
@@ -85,6 +90,9 @@ function M.open(themes, current, opts, confirm)
       end
     end,
     before_confirm = function(ctx)
+      if opts.apply == false then
+        return true
+      end
       local ok, err = preview(ctx.item)
       return ok == true, err
     end,
@@ -92,7 +100,7 @@ function M.open(themes, current, opts, confirm)
       session.closed = true
       if active == session then
         active = nil
-        if outcome.reason ~= "confirm" then
+        if outcome.reason ~= "confirm" and opts.preview ~= false then
           colors.restore(session.original)
         end
       end

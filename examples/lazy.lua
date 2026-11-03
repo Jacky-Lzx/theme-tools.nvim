@@ -13,10 +13,12 @@ return {
     },
     opts = {
       catppuccin = { transparent_background = true },
+      dracula = { transparent_bg = true },
       default = "theme-tools-mocha",
       picker = { backend = "selection_tools" },
       themes = {
         "theme-tools-mocha",
+        "dracula",
         "catppuccin-latte",
         "catppuccin-frappe",
         "catppuccin-macchiato",

@@ -3,11 +3,19 @@ local installer = require("theme_tools.install")
 local root = vim.fn.tempname()
 local repository = root .. "/source"
 vim.fn.mkdir(repository .. "/lua/catppuccin", "p")
+vim.fn.mkdir(repository .. "/lua/dracula", "p")
 vim.fn.mkdir(repository .. "/colors", "p")
 vim.fn.writefile({
   "return { setup = function(opts) vim.g.fixture_options = opts; vim.g.fixture_setups = (vim.g.fixture_setups or 0) + 1 end }",
 }, repository .. "/lua/catppuccin/init.lua")
 vim.fn.writefile({ 'vim.g.colors_name = "catppuccin-mocha"' }, repository .. "/colors/catppuccin-mocha.lua")
+vim.fn.writefile({
+  "return {setup=function(opts) vim.g.dracula_options=opts; vim.g.dracula_setups=(vim.g.dracula_setups or 0)+1 end}",
+}, repository .. "/lua/dracula/init.lua")
+vim.fn.writefile({
+  'vim.g.colors_name="dracula"',
+  'vim.g.terminal_color_background="#282a36"',
+}, repository .. "/colors/dracula.lua")
 local function git(args)
   local result = vim.system(vim.list_extend({ "git" }, args), { cwd = repository, text = true }):wait()
   assert(result.code == 0, result.stderr)
@@ -80,6 +88,7 @@ themes.setup({
   persist = false,
   install = opts,
   catppuccin = { transparent_background = true },
+  dracula = false,
   themes = { "theme-tools-mocha", "catppuccin-mocha" },
   default = "theme-tools-mocha",
 })
@@ -96,8 +105,32 @@ assert(themes.set("catppuccin-mocha"))
 assert(vim.g.fixture_setups == 1, "repeat previews must reuse initialized Catppuccin")
 assert(themes.install())
 assert(vim.g.fixture_setups == 2, "explicit install must reconfigure the source")
-themes.setup({ persist = false, catppuccin = false, themes = { "habamax" } })
+local dracula = require("theme_tools.providers.dracula")
+dracula.source = vim.tbl_extend("force", source, { name = "dracula", entrypoint = "lua/dracula/init.lua" })
+themes.setup({
+  persist = false,
+  install = opts,
+  catppuccin = false,
+  dracula = { transparent_bg = true },
+  themes = { "theme-tools-mocha", "dracula" },
+  default = "theme-tools-mocha",
+})
+assert(not package.loaded.dracula and not vim.g.dracula_options)
+assert(themes.set("dracula"))
+assert(vim.g.dracula_options.transparent_bg and vim.g.dracula_setups == 1)
+assert(vim.g.colors_name == "dracula" and vim.o.background == "dark")
+assert(vim.g.terminal_color_background == "#282a36")
+vim.env.PATH = ""
+assert(themes.set("theme-tools-mocha"))
+assert(vim.g.terminal_color_background == nil)
+assert(themes.set("dracula"))
+assert(vim.g.dracula_setups == 1)
+assert(themes.install("dracula"))
+vim.env.PATH = environment_path
+assert(vim.g.dracula_setups == 2)
+themes.setup({ persist = false, catppuccin = false, dracula = false, themes = { "habamax" } })
 assert(themes.install())
 vim.opt.runtimepath:remove(path)
+vim.opt.runtimepath:remove(opts.root .. "/dracula/" .. source.commit)
 vim.fn.delete(root, "rf")
 print("managed themes: Git download, pinned revision, offline reuse, cleanup, retry and provider startup passed")

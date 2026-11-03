@@ -5,6 +5,8 @@ function M.snapshot()
   for i = 0, 15 do
     terminal[i] = vim.g["terminal_color_" .. i]
   end
+  terminal.background = vim.g.terminal_color_background
+  terminal.foreground = vim.g.terminal_color_foreground
   return {
     name = vim.g.colors_name,
     background = vim.o.background,
@@ -38,6 +40,8 @@ function M.restore(snapshot)
   for i = 0, 15 do
     vim.g["terminal_color_" .. i] = snapshot.terminal[i]
   end
+  vim.g.terminal_color_background = snapshot.terminal.background
+  vim.g.terminal_color_foreground = snapshot.terminal.foreground
 end
 
 function M.apply(theme)
@@ -51,6 +55,8 @@ function M.apply(theme)
       vim.g.colors_name = nil
       vim.o.background = theme.background
     end
+    vim.g.terminal_color_background = nil
+    vim.g.terminal_color_foreground = nil
     vim.cmd.colorscheme(theme.colorscheme)
   end)
   if not ok then

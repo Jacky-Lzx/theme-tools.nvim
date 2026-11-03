@@ -6,14 +6,22 @@ local defaults = {
   persist = true,
   state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
   catppuccin = {},
+  dracula = {},
   install = { root = vim.fn.stdpath("data") .. "/theme-tools/themes", timeout = 30000 },
-  picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
+  picker = { backend = "builtin", width = 52, height = 12, border = "rounded", group_by_background = true },
 }
 local config = vim.deepcopy(defaults)
 local registered = {}
 local selected
-local managed_ready = false
+local managed_ready = {}
+local sources = {
+  catppuccin = { "catppuccin", "catppuccin-*" },
+  dracula = { "dracula", "dracula-soft" },
+}
 local backgrounds = {
+  ["theme-tools-mocha"] = "dark",
+  dracula = "dark",
+  ["dracula-soft"] = "dark",
   ["catppuccin-latte"] = "light",
   ["catppuccin-frappe"] = "dark",
   ["catppuccin-macchiato"] = "dark",
@@ -24,15 +32,17 @@ local function notify(err)
   vim.notify(tostring(err), vim.log.levels.WARN, { title = "theme-tools" })
 end
 
-function M.install()
-  if config.catppuccin == false then
-    return true
+function M.install(source)
+  assert(source == nil or sources[source], "unknown theme source")
+  for _, name in ipairs(source and { source } or { "catppuccin", "dracula" }) do
+    if config[name] ~= false then
+      local path, err = require("theme_tools.providers." .. name).load(config.install, config[name])
+      if not path then
+        return nil, err
+      end
+      managed_ready[name] = true
+    end
   end
-  local path, err = require("theme_tools.providers.catppuccin").load(config.install, config.catppuccin)
-  if not path then
-    return nil, err
-  end
-  managed_ready = true
   return true
 end
 
@@ -126,6 +136,10 @@ local function commit(theme)
 end
 
 function M.close()
+  local groups = package.loaded["theme_tools.groups"]
+  if groups then
+    groups.close()
+  end
   local builtin = package.loaded["theme_tools.picker"]
   if builtin then
     builtin.close()
@@ -155,6 +169,9 @@ function M.pick()
   M.close()
   local picker = config.picker.backend == "selection_tools" and "theme_tools.integrations.selection"
     or "theme_tools.picker"
+  if config.picker.group_by_background then
+    return require("theme_tools.groups").open(M.list(), M.current(), config.picker, commit, require(picker))
+  end
   return require(picker).open(M.list(), M.current(), config.picker, commit)
 end
 
@@ -232,34 +249,38 @@ function M.setup(opts)
   assert(type(new.picker.width) == "number" and new.picker.width >= 1, "picker.width must be positive")
   assert(type(new.picker.height) == "number" and new.picker.height >= 1, "picker.height must be positive")
   assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid picker.backend")
+  assert(type(new.picker.group_by_background) == "boolean", "picker.group_by_background must be boolean")
   assert(type(new.catppuccin) == "table" or new.catppuccin == false, "catppuccin must be an options table or false")
+  assert(type(new.dracula) == "table" or new.dracula == false, "dracula must be an options table or false")
   assert(type(new.install.root) == "string" and new.install.root ~= "", "install.root must be nonempty")
   assert(type(new.install.timeout) == "number" and new.install.timeout > 0, "install.timeout must be positive")
   assert(opts.themes == nil or vim.islist(opts.themes), "themes must be a list")
   local themes = vim.tbl_map(normalize, opts.themes or {})
   M.close()
   config, registered, selected = new, {}, nil
-  managed_ready = false
+  managed_ready = {}
   for _, theme in ipairs(themes) do
     M.register(theme)
   end
   M.commands()
   local group = vim.api.nvim_create_augroup("theme_tools_sources", { clear = true })
-  if config.catppuccin ~= false then
-    -- ColorSchemePre runs before runtimepath lookup, including direct :colorscheme
-    -- calls and picker previews. Independent themes never initialize this source.
-    vim.api.nvim_create_autocmd("ColorSchemePre", {
-      group = group,
-      pattern = { "catppuccin", "catppuccin-*" },
-      callback = function()
-        if not managed_ready then
-          local ok, err = M.install()
-          if not ok then
-            error(err, 0)
+  for name, patterns in pairs(sources) do
+    if config[name] ~= false then
+      -- ColorSchemePre runs before runtimepath lookup, including direct :colorscheme
+      -- calls and picker previews. Independent themes never initialize this source.
+      vim.api.nvim_create_autocmd("ColorSchemePre", {
+        group = group,
+        pattern = patterns,
+        callback = function()
+          if not managed_ready[name] then
+            local ok, err = M.install(name)
+            if not ok then
+              error(err, 0)
+            end
           end
-        end
-      end,
-    })
+        end,
+      })
+    end
   end
   local name, err
   if config.persist then

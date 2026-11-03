@@ -64,10 +64,26 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         assert term.lua("return require('lazy.core.config').plugins.catppuccin == nil")
         assert term.lua("return package.loaded.catppuccin == nil and package.loaded['config.highlights'] == nil")
         assert term.lua("return package.loaded['theme_tools.providers.catppuccin'] == nil")
+        assert term.lua("return package.loaded.dracula == nil and package.loaded['theme_tools.providers.dracula'] == nil")
         assert term.lua("return vim.fn.maparg('<leader>ut','n')") == "<Cmd>ThemeTools<CR>"
         term.keys(b" ut")
         assert term.lua("return vim.bo.filetype") == "selection_tools_input"
+        term.keys(b"dracula")
+        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert term.lua("return vim.o.background") == "dark"
+        assert term.lua("return package.loaded.catppuccin == nil"), "Dracula must load independently"
+        assert term.lua("local p=require('theme_tools.providers.dracula').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('dracula').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
+        term.keys(b"\x1b")
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
+        assert term.lua("return vim.g.terminal_color_background == nil and vim.g.terminal_color_foreground == nil")
+        term.keys(b" ut")
         term.keys(b"latte")
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha", "dark search must exclude Latte"
+        assert term.lua("return package.loaded.catppuccin == nil")
+        term.keys(b"\x07")
+        term.keys(b"\x0e")
+        assert term.lua("return vim.o.background") == "dark", "group navigation must not change brightness"
+        term.keys(b"\r")
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
         assert term.lua("local p=require('theme_tools.providers.catppuccin').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('catppuccin').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
         term.lua("dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_integrations.lua')")
@@ -79,7 +95,10 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         check_backgrounds(term, False)
         assert term.lua("return vim.fn.mode()") == "n"
-        term.keys(b" utlatte\r")
+        term.keys(b" ut")
+        term.keys(b"\x07")
+        term.keys(b"light\r")
+        term.keys(b"latte\r")
         actual = term.lua("return vim.g.colors_name")
         assert actual == "catppuccin-latte", actual
         check_backgrounds(term, True)
@@ -105,6 +124,23 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         assert term.lua("return vim.o.background") == "light"
         check_backgrounds(term, True)
         assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
+        term.keys(b" ut")
+        term.keys(b"dracula")
+        assert term.lua("return vim.g.colors_name") == "catppuccin-latte", "light search must exclude dark themes"
+        term.keys(b"\x07")
+        assert term.lua("return vim.fn.mode()") == "i", "category search must start in Insert mode"
+        term.keys(b"dark\r")
+        assert term.lua("return vim.fn.mode()") == "i", "theme search must start in Insert mode"
+        term.keys(b"dracula\r")
+        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert json.loads(path.read_text())["name"] == "dracula"
+    finally:
+        term.close()
+    term = Terminal(config / "init.lua", directory / "dracula.sock", before)
+    try:
+        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert term.lua("return package.loaded.catppuccin == nil")
+        assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
     finally:
         term.close()
     # A saved independent choice must restore without even loading its source adapter.
@@ -113,8 +149,9 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     try:
         assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         assert term.lua("return package.loaded.catppuccin == nil")
+        assert term.lua("return package.loaded.dracula == nil")
         check_backgrounds(term, False)
         assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
     finally:
         term.close()
-print("configured PTY: independent startup, lazy Catppuccin, Space u t, preview/cancel, opacity, lualine and both restart paths passed")
+print("configured PTY: Dracula install/switch/restart, brightness groups, inert group navigation, preview/cancel, opacity and independent startup passed")

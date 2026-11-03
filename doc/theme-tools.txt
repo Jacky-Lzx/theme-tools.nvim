@@ -10,6 +10,7 @@ CONFIGURATION                                         *theme-tools-config*
 >
   require("theme_tools").setup({
     catppuccin = { transparent_background = true }, -- passed to Catppuccin setup
+    dracula = { transparent_bg = true },           -- passed to Dracula setup
     install = {
       root = vim.fn.stdpath("data") .. "/theme-tools/themes",
       timeout = 30000, -- total download timeout in milliseconds
@@ -17,6 +18,7 @@ CONFIGURATION                                         *theme-tools-config*
     -- With no themes list, discover defaults to true. With a list, it is false.
     themes = {
       "theme-tools-mocha",         -- included independent personal theme
+      "dracula",
       "catppuccin-mocha",
       {
         name = "day",               -- stable ID used by commands and state
@@ -32,7 +34,10 @@ CONFIGURATION                                         *theme-tools-config*
     default = "theme-tools-mocha",   -- used if no saved, available ID exists
     persist = true,
     state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
-    picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
+    picker = {
+      backend = "builtin", width = 52, height = 12, border = "rounded",
+      group_by_background = true,
+    },
   })
 <
 Catppuccin is a built-in managed source, downloaded from its official Git
@@ -43,7 +48,15 @@ plugin spec is needed. ColorSchemePre also supports direct :colorscheme calls.
 Use catppuccin=false to disable both managed installation and configuration.
 Sources initialize once per setup; selecting another theme skips them entirely.
 Register managed theme names explicitly to list them before their source loads.
-:ThemeToolsInstall explicitly installs and reconfigures the managed source.
+:ThemeToolsInstall explicitly installs and reconfigures all enabled sources.
+install("catppuccin") or install("dracula") targets one provider instead.
+
+Dracula uses https://github.com/Mofiqul/dracula.nvim at the revision pinned in
+theme_tools.providers.dracula. Register "dracula" or "dracula-soft" and pass its
+upstream options through dracula={...}. Its source downloads to
+install.root/dracula/<commit> and initializes only when selected or explicitly
+installed. dracula=false disables this managed source. Choosing one managed theme
+does not initialize the other; independent Mocha requires neither provider.
 
 theme-tools-mocha is an independent personal theme derived from Mocha with a fixed
 set of integrations, transparent backgrounds and personal highlight overrides.
@@ -70,7 +83,7 @@ compiled theme cache and ColorScheme events remain in use.
 
 The first download requires Git and network access. Subsequent startups reuse
 the installed revision without invoking Git or fetching. Source checkouts live
-under install.root/catppuccin/<commit>. A temporary directory is checked out and
+under install.root/<source>/<commit>. A temporary directory is checked out and
 verified before it is published. Failed downloads clean up only their own
 temporary directories; an incomplete existing target is reported, not overwritten.
 The fixed revision is updated by updating theme-tools and restarting Neovim;
@@ -85,6 +98,17 @@ to the current screen. Border uses nvim_open_win() border syntax.
 The four explicit Catppuccin variants infer their light/dark background unless
 overridden. This prevents Catppuccin's remembered flavour from mistaking a later
 selection for a background-mode toggle after an independent theme was active.
+Independent Mocha, Dracula and Dracula Soft infer background="dark".
+
+By default picker.group_by_background=true separates dark and light theme lists.
+The active theme's category opens first. Ctrl-G opens a category menu; highlighting
+a category does not preview anything. Enter opens that category's themes. Group
+selection never writes theme state or emits ThemeToolsChanged. Empty searches in
+grouped lists retain the last preview. Cancelling restores the opening palette.
+Themes without background metadata appear in Unclassified and preview only when
+confirmed with Enter. Set a theme's background="dark" or "light" to classify it.
+picker.group_by_background=false restores a combined list with live previews.
+Ctrl-G is local to grouped theme pickers; no global mappings are installed.
 
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
 on_change API). It inherits that plugin's compact select layout, matching and
@@ -110,7 +134,8 @@ API                                                   *theme-tools-api*
 >
   local themes = require("theme_tools")
   themes.pick()                     -- open a searchable live preview
-  themes.install()                  -- ensure configured managed themes are loaded
+  themes.install()                  -- load all enabled managed sources
+  themes.install("dracula")         -- download/configure just one source
   themes.close()                    -- cancel preview; safe to repeat
   themes.set("catppuccin-mocha")     -- apply and save
   themes.next()                     -- apply next, wrapping
@@ -145,7 +170,8 @@ BEHAVIOR                                              *theme-tools-behavior*
 
 Cancellation restores the opening colorscheme, 'background', global highlight
 definitions (including manual overrides), g:colors_name and g:terminal_color_0
-through g:terminal_color_15. Failed loads restore the last successful palette.
+through g:terminal_color_15, plus g:terminal_color_background and
+g:terminal_color_foreground. Failed loads restore the last successful palette.
 No state is saved while browsing, filtering, resizing or cancelling.
 
 This restoration covers colors, not arbitrary side effects from theme scripts,
