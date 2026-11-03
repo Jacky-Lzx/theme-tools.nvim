@@ -26,13 +26,22 @@ CONFIGURATION                                         *theme-tools-config*
     default = "catppuccin-mocha",    -- used if no saved, available ID exists
     persist = true,
     state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
-    picker = { width = 52, height = 12, border = "rounded" },
+    picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
   })
 <
 Themes may be strings or tables. Names must be nonempty without whitespace;
 labels are for display only. Duplicate names replace the earlier definition
 while preserving its position. Width and height are maximum cell counts, clamped
 to the current screen. Border uses nvim_open_win() border syntax.
+
+Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
+on_change API). It inherits that plugin's compact select layout, matching and
+keys. picker.selection accepts per-picker layout, matcher and keys overrides.
+The active theme appears first. Width/height/border above apply to the builtin
+backend. Both backends share preview, persistence and cancellation semantics;
+selection-tools owns selection, window lifecycle and navigation for its backend.
+Resume, multiple selection and file-opening/export actions are disabled for
+theme pickers so callbacks remain tied to the current preview session.
 
 setup() replaces earlier configuration and registrations, cancels an open picker,
 and restores an available saved ID, falling back to default. With neither, the

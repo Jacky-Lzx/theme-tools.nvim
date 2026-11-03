@@ -13,18 +13,16 @@ import termios
 import time
 from rpc import pack, unpack
 
-signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError("Theme TUI timed out")))
-signal.alarm(40)
 root = Path(__file__).resolve().parent.parent
 
 
 class Terminal:
-    def __init__(self, init, address):
+    def __init__(self, init, address, before=None):
         self.pid, self.fd = pty.fork()
         if self.pid == 0:
             os.environ["TERM"] = "xterm-256color"
             binary = os.environ.get("NVIM_BIN", "nvim")
-            os.execvp(binary, [binary, "-n", "-u", str(init), "-i", "NONE", "--listen", str(address)])
+            os.execvp(binary, [binary, "-n", *(before or []), "-u", str(init), "-i", "NONE", "--listen", str(address)])
         self.resize(90, 28)
         self.output = b""
         self.serial = 0
@@ -93,45 +91,52 @@ class Terminal:
         os.close(self.fd)
 
 
-with tempfile.TemporaryDirectory(prefix="/tmp/theme-tui-") as directory:
-    directory = Path(directory)
-    init = directory / "init.lua"
-    state = directory / "selection.json"
-    init.write_text(f"""vim.opt.rtp:prepend({json.dumps(str(root))})
-vim.o.swapfile=false
-t=require('theme_tools')
-t.setup({{state_file={json.dumps(str(state))},default='habamax',themes={{'habamax','morning','desert'}}}})
-vim.keymap.set('n','<F5>',t.pick)
-""")
-    term = Terminal(init, directory / "first.sock")
-    try:
-        term.keys(b":ThemeTools\r")
-        assert term.lua("return vim.fn.mode()") == "i"
-        assert b"Filter themes" in term.output and b"morning" in term.output
-        term.keys(b"\x0e")  # Ctrl-N through the terminal input decoder.
-        assert term.lua("return vim.g.colors_name") == "morning"
-        term.keys(b"\x1b")
-        assert term.lua("return vim.fn.mode()") == "n"
-        assert term.lua("return #vim.api.nvim_list_wins()") == 1
-        assert term.lua("return vim.g.colors_name") == "habamax"
-        term.keys(b":ThemeTools\rmorn")
-        assert term.lua("return vim.g.colors_name") == "morning"
-        term.resize(30, 13)
-        term.drain(0.1)
-        assert term.lua("return vim.o.columns") == 30
-        assert term.lua("return #vim.api.nvim_list_wins()") == 3
-        term.keys(b"\r")
-        assert term.lua("return vim.fn.mode()") == "n"
-        assert json.loads(state.read_text())["name"] == "morning"
-        term.keys(b"ieditor text\x1b")
-        assert term.lua("return vim.api.nvim_get_current_line()") == "editor text"
-    finally:
-        term.close()
-    term = Terminal(init, directory / "second.sock")
-    try:
-        actual = term.lua("return vim.g.colors_name")
-        assert actual == "morning", (actual, state.read_text())
-        assert term.lua("return vim.o.background") == "light"
-    finally:
-        term.close()
-print("PTY: native input, Escape, live preview, SIGWINCH, editing and persisted restart passed")
+def main():
+    signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(TimeoutError("Theme TUI timed out")))
+    signal.alarm(40)
+    with tempfile.TemporaryDirectory(prefix="/tmp/theme-tui-") as directory:
+        directory = Path(directory)
+        init = directory / "init.lua"
+        state = directory / "selection.json"
+        init.write_text(f"""vim.opt.rtp:prepend({json.dumps(str(root))})
+    vim.o.swapfile=false
+    t=require('theme_tools')
+    t.setup({{state_file={json.dumps(str(state))},default='habamax',themes={{'habamax','morning','desert'}}}})
+    vim.keymap.set('n','<F5>',t.pick)
+    """)
+        term = Terminal(init, directory / "first.sock")
+        try:
+            term.keys(b":ThemeTools\r")
+            assert term.lua("return vim.fn.mode()") == "i"
+            assert b"Filter themes" in term.output and b"morning" in term.output
+            term.keys(b"\x0e")  # Ctrl-N through the terminal input decoder.
+            assert term.lua("return vim.g.colors_name") == "morning"
+            term.keys(b"\x1b")
+            assert term.lua("return vim.fn.mode()") == "n"
+            assert term.lua("return #vim.api.nvim_list_wins()") == 1
+            assert term.lua("return vim.g.colors_name") == "habamax"
+            term.keys(b":ThemeTools\rmorn")
+            assert term.lua("return vim.g.colors_name") == "morning"
+            term.resize(30, 13)
+            term.drain(0.1)
+            assert term.lua("return vim.o.columns") == 30
+            assert term.lua("return #vim.api.nvim_list_wins()") == 3
+            term.keys(b"\r")
+            assert term.lua("return vim.fn.mode()") == "n"
+            assert json.loads(state.read_text())["name"] == "morning"
+            term.keys(b"ieditor text\x1b")
+            assert term.lua("return vim.api.nvim_get_current_line()") == "editor text"
+        finally:
+            term.close()
+        term = Terminal(init, directory / "second.sock")
+        try:
+            actual = term.lua("return vim.g.colors_name")
+            assert actual == "morning", (actual, state.read_text())
+            assert term.lua("return vim.o.background") == "light"
+        finally:
+            term.close()
+    print("PTY: native input, Escape, live preview, SIGWINCH, editing and persisted restart passed")
+
+
+if __name__ == "__main__":
+    main()

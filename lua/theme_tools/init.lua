@@ -5,7 +5,7 @@ local defaults = {
   discover = true,
   persist = true,
   state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
-  picker = { width = 52, height = 12, border = "rounded" },
+  picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
 }
 local config = vim.deepcopy(defaults)
 local registered = {}
@@ -103,6 +103,10 @@ end
 
 function M.close()
   require("theme_tools.picker").close()
+  local selection = package.loaded["theme_tools.integrations.selection"]
+  if selection then
+    selection.close()
+  end
 end
 
 function M.set(name)
@@ -122,7 +126,9 @@ end
 
 function M.pick()
   M.close()
-  return require("theme_tools.picker").open(M.list(), M.current(), config.picker, commit)
+  local picker = config.picker.backend == "selection_tools" and "theme_tools.integrations.selection"
+    or "theme_tools.picker"
+  return require(picker).open(M.list(), M.current(), config.picker, commit)
 end
 
 local function cycle(step)
@@ -195,6 +201,7 @@ function M.setup(opts)
   assert(type(new.state_file) == "string" and new.state_file ~= "", "state_file must be nonempty")
   assert(type(new.picker.width) == "number" and new.picker.width >= 1, "picker.width must be positive")
   assert(type(new.picker.height) == "number" and new.picker.height >= 1, "picker.height must be positive")
+  assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid picker.backend")
   assert(opts.themes == nil or vim.islist(opts.themes), "themes must be a list")
   local themes = vim.tbl_map(normalize, opts.themes or {})
   M.close()
