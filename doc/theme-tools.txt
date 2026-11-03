@@ -16,6 +16,7 @@ CONFIGURATION                                         *theme-tools-config*
     },
     -- With no themes list, discover defaults to true. With a list, it is false.
     themes = {
+      "theme-tools-mocha",         -- included independent personal theme
       "catppuccin-mocha",
       {
         name = "day",               -- stable ID used by commands and state
@@ -28,18 +29,36 @@ CONFIGURATION                                         *theme-tools-config*
       },
     },
     discover = false,               -- append installed schemes to explicit list
-    default = "catppuccin-mocha",    -- used if no saved, available ID exists
+    default = "theme-tools-mocha",   -- used if no saved, available ID exists
     persist = true,
     state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
     picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
   })
 <
 Catppuccin is a built-in managed source, downloaded from its official Git
-repository at the commit pinned in theme_tools.providers.catppuccin. setup()
-installs it if missing, adds it to runtimepath and passes the catppuccin table
-to require("catppuccin").setup(). No separate Catppuccin plugin spec is needed.
+repository at the commit pinned in theme_tools.providers.catppuccin. The first
+Catppuccin selection installs it if missing, adds it to runtimepath and passes
+the catppuccin table to require("catppuccin").setup(). No separate Catppuccin
+plugin spec is needed. ColorSchemePre also supports direct :colorscheme calls.
 Use catppuccin=false to disable both managed installation and configuration.
-Installation is independent of the themes picker list.
+Sources initialize once per setup; selecting another theme skips them entirely.
+Register managed theme names explicitly to list them before their source loads.
+:ThemeToolsInstall explicitly installs and reconfigures the managed source.
+
+theme-tools-mocha is an independent personal theme derived from Mocha with a fixed
+set of integrations, transparent backgrounds and personal highlight overrides.
+Its generated colors file applies highlights directly; no Catppuccin modules,
+setup, integration detection, runtime compilation or cache validation run.
+Catppuccin options do not affect it. Edit lua/theme_tools/mocha/palette.lua and
+groups/*.lua, then run from the repository:
+>
+  nvim --headless -u NONE -l scripts/build_mocha.lua
+<
+Commit the source and generated colors/theme-tools-mocha.lua together. Generation
+is deterministic, offline and independent of upstream. vim.loader can cache the
+generated Lua source as local bytecode. The palette is also available through
+require("theme_tools.mocha.palette") for statusline components. See the README
+and LICENSE.catppuccin for provenance and maintenance details.
 
 When Lazy and vim.loader are active, integration detection uses Lazy's existing
 plugin inventory plus native vim.pack packages. Catppuccin receives resolved
@@ -63,6 +82,9 @@ Themes may be strings or tables. Names must be nonempty without whitespace;
 labels are for display only. Duplicate names replace the earlier definition
 while preserving its position. Width and height are maximum cell counts, clamped
 to the current screen. Border uses nvim_open_win() border syntax.
+The four explicit Catppuccin variants infer their light/dark background unless
+overridden. This prevents Catppuccin's remembered flavour from mistaking a later
+selection for a background-mode toggle after an independent theme was active.
 
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
 on_change API). It inherits that plugin's compact select layout, matching and

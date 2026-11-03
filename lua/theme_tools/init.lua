@@ -12,6 +12,13 @@ local defaults = {
 local config = vim.deepcopy(defaults)
 local registered = {}
 local selected
+local managed_ready = false
+local backgrounds = {
+  ["catppuccin-latte"] = "light",
+  ["catppuccin-frappe"] = "dark",
+  ["catppuccin-macchiato"] = "dark",
+  ["catppuccin-mocha"] = "dark",
+}
 
 local function notify(err)
   vim.notify(tostring(err), vim.log.levels.WARN, { title = "theme-tools" })
@@ -25,6 +32,7 @@ function M.install()
   if not path then
     return nil, err
   end
+  managed_ready = true
   return true
 end
 
@@ -36,6 +44,9 @@ local function normalize(theme)
   theme = vim.deepcopy(theme)
   theme.name = theme.name or theme.colorscheme
   theme.colorscheme = theme.colorscheme or theme.name
+  -- Catppuccin remembers its last flavour. After another scheme changes
+  -- 'background', its loader can interpret a repeated flavour as a mode toggle.
+  theme.background = theme.background or backgrounds[theme.colorscheme]
   assert(type(theme.name) == "string" and theme.name:match("^%S+$"), "theme name must be nonempty without whitespace")
   assert(type(theme.colorscheme) == "string" and theme.colorscheme ~= "", "colorscheme must be nonempty")
   assert(theme.label == nil or type(theme.label) == "string", "label must be a string")
@@ -228,13 +239,27 @@ function M.setup(opts)
   local themes = vim.tbl_map(normalize, opts.themes or {})
   M.close()
   config, registered, selected = new, {}, nil
+  managed_ready = false
   for _, theme in ipairs(themes) do
     M.register(theme)
   end
   M.commands()
-  local installed, install_error = M.install()
-  if not installed then
-    notify(install_error)
+  local group = vim.api.nvim_create_augroup("theme_tools_sources", { clear = true })
+  if config.catppuccin ~= false then
+    -- ColorSchemePre runs before runtimepath lookup, including direct :colorscheme
+    -- calls and picker previews. Independent themes never initialize this source.
+    vim.api.nvim_create_autocmd("ColorSchemePre", {
+      group = group,
+      pattern = { "catppuccin", "catppuccin-*" },
+      callback = function()
+        if not managed_ready then
+          local ok, err = M.install()
+          if not ok then
+            error(err, 0)
+          end
+        end
+      end,
+    })
   end
   local name, err
   if config.persist then

@@ -46,7 +46,9 @@ function M.apply(theme)
     if theme.before then
       theme.before(theme)
     end
-    if theme.background then
+    if theme.background and theme.background ~= vim.o.background then
+      -- Avoid reloading the previous scheme when changing light/dark modes.
+      vim.g.colors_name = nil
       vim.o.background = theme.background
     end
     vim.cmd.colorscheme(theme.colorscheme)

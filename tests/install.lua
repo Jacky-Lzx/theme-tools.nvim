@@ -4,10 +4,9 @@ local root = vim.fn.tempname()
 local repository = root .. "/source"
 vim.fn.mkdir(repository .. "/lua/catppuccin", "p")
 vim.fn.mkdir(repository .. "/colors", "p")
-vim.fn.writefile(
-  { "return { setup = function(opts) vim.g.fixture_options = opts end }" },
-  repository .. "/lua/catppuccin/init.lua"
-)
+vim.fn.writefile({
+  "return { setup = function(opts) vim.g.fixture_options = opts; vim.g.fixture_setups = (vim.g.fixture_setups or 0) + 1 end }",
+}, repository .. "/lua/catppuccin/init.lua")
 vim.fn.writefile({ 'vim.g.colors_name = "catppuccin-mocha"' }, repository .. "/colors/catppuccin-mocha.lua")
 local function git(args)
   local result = vim.system(vim.list_extend({ "git" }, args), { cwd = repository, text = true }):wait()
@@ -81,15 +80,22 @@ themes.setup({
   persist = false,
   install = opts,
   catppuccin = { transparent_background = true },
-  themes = { "catppuccin-mocha" },
-  default = "catppuccin-mocha",
+  themes = { "theme-tools-mocha", "catppuccin-mocha" },
+  default = "theme-tools-mocha",
 })
+assert(vim.g.colors_name == "theme-tools-mocha")
+assert(not package.loaded.catppuccin and not vim.g.fixture_options)
+assert(not vim.tbl_contains(vim.opt.runtimepath:get(), path))
+assert(themes.set("catppuccin-mocha"))
 assert(vim.g.fixture_options.transparent_background)
 assert(vim.g.colors_name == "catppuccin-mocha")
 assert(themes.current() == "catppuccin-mocha")
 assert(vim.tbl_contains(vim.opt.runtimepath:get(), path))
 assert(vim.fn.exists(":ThemeToolsInstall") == 2)
+assert(themes.set("catppuccin-mocha"))
+assert(vim.g.fixture_setups == 1, "repeat previews must reuse initialized Catppuccin")
 assert(themes.install())
+assert(vim.g.fixture_setups == 2, "explicit install must reconfigure the source")
 themes.setup({ persist = false, catppuccin = false, themes = { "habamax" } })
 assert(themes.install())
 vim.opt.runtimepath:remove(path)

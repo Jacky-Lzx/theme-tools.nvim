@@ -58,27 +58,30 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     before = ["--cmd", "lua dofile(vim.env.NVIM_CONFIG_ROOT .. '/tests/setup.lua')"]
     term = Terminal(config / "init.lua", directory / "first.sock", before)
     try:
-        assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         check_backgrounds(term, False)
         assert term.lua("return require('lazy.core.config').plugins['theme-tools.nvim'].dir") == str(Path(__file__).resolve().parent.parent)
         assert term.lua("return require('lazy.core.config').plugins.catppuccin == nil")
-        term.lua("dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_integrations.lua')")
-        assert term.lua("local p=require('theme_tools.providers.catppuccin').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('catppuccin').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
+        assert term.lua("return package.loaded.catppuccin == nil and package.loaded['config.highlights'] == nil")
+        assert term.lua("return package.loaded['theme_tools.providers.catppuccin'] == nil")
         assert term.lua("return vim.fn.maparg('<leader>ut','n')") == "<Cmd>ThemeTools<CR>"
         term.keys(b" ut")
         assert term.lua("return vim.bo.filetype") == "selection_tools_input"
-        term.keys(b"\x0e")
+        term.keys(b"latte")
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
+        assert term.lua("local p=require('theme_tools.providers.catppuccin').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('catppuccin').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
+        term.lua("dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_integrations.lua')")
         assert term.lua("return vim.o.background") == "light"
         check_backgrounds(term, True)
         assert term.lua("return vim.api.nvim_get_hl(0,{name='UiToolsLineNr'}).fg == tonumber(require('catppuccin.palettes').get_palette('latte').surface2:sub(2),16)")
         assert term.lua("return require('lualine').get_config().options.theme") == "auto"
         term.keys(b"\x1b")
-        assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         check_backgrounds(term, False)
         assert term.lua("return vim.fn.mode()") == "n"
         term.keys(b" utlatte\r")
-        assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
+        actual = term.lua("return vim.g.colors_name")
+        assert actual == "catppuccin-latte", actual
         check_backgrounds(term, True)
         assert term.lua("return vim.bo.filetype") != "selection_tools_input"
         path = Path(term.lua("return vim.fn.stdpath('state') .. '/theme-tools/selection.json'"))
@@ -104,4 +107,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
     finally:
         term.close()
-print("configured PTY: local installation, Space u t, Catppuccin, custom highlights, lualine, cycling and restart passed")
+    # A saved independent choice must restore without even loading its source adapter.
+    path.write_text(json.dumps({"name": "theme-tools-mocha"}))
+    term = Terminal(config / "init.lua", directory / "personal.sock", before)
+    try:
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
+        assert term.lua("return package.loaded.catppuccin == nil")
+        check_backgrounds(term, False)
+        assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
+    finally:
+        term.close()
+print("configured PTY: independent startup, lazy Catppuccin, Space u t, preview/cancel, opacity, lualine and both restart paths passed")
