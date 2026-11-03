@@ -1,0 +1,97 @@
+*theme-tools.txt*  Live colorscheme switching for Neovim 0.11+
+
+CONTENTS                                              *theme-tools*
+
+  Configuration  |theme-tools-config|
+  API            |theme-tools-api|
+  Behavior       |theme-tools-behavior|
+
+CONFIGURATION                                         *theme-tools-config*
+>
+  require("theme_tools").setup({
+    -- With no themes list, discover defaults to true. With a list, it is false.
+    themes = {
+      "catppuccin-mocha",
+      {
+        name = "day",               -- stable ID used by commands and state
+        label = "Daylight",         -- optional picker label
+        colorscheme = "morning",    -- defaults to name
+        background = "light",       -- optional: light or dark
+        before = function(theme)    -- optional: runs before every application
+          -- Configure or load a theme plugin here if needed.
+        end,
+      },
+    },
+    discover = false,               -- append installed schemes to explicit list
+    default = "catppuccin-mocha",    -- used if no saved, available ID exists
+    persist = true,
+    state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
+    picker = { width = 52, height = 12, border = "rounded" },
+  })
+<
+Themes may be strings or tables. Names must be nonempty without whitespace;
+labels are for display only. Duplicate names replace the earlier definition
+while preserving its position. Width and height are maximum cell counts, clamped
+to the current screen. Border uses nvim_open_win() border syntax.
+
+setup() replaces earlier configuration and registrations, cancels an open picker,
+and restores an available saved ID, falling back to default. With neither, the
+current colorscheme stays active. persist=false disables both reading and writing
+state. Corrupt state is ignored with a warning. Unavailable saved IDs are ignored.
+If a saved theme fails to load, its error is reported and the prior palette is
+restored. State stores only the theme ID; it never stores or evaluates Lua code.
+
+Before callbacks can call require("lazy").load({plugins={"theme-name"}}) or a
+theme's setup() if needed. Colorschemes on runtimepath need no adapter. Explicit
+themes can be autoloaded by lazy.nvim even before they appear in discovery.
+
+API                                                   *theme-tools-api*
+>
+  local themes = require("theme_tools")
+  themes.pick()                     -- open a searchable live preview
+  themes.close()                    -- cancel preview; safe to repeat
+  themes.set("catppuccin-mocha")     -- apply and save
+  themes.next()                     -- apply next, wrapping
+  themes.prev()                     -- apply previous, wrapping
+  themes.current()                  -- matching registered ID, or nil
+  themes.list()                     -- copied list in picker/cycling order
+  themes.register({ name = "night", colorscheme = "habamax" })
+<
+pick(), set(), next() and prev() return true on success or nil, error on failure.
+Commands report these errors with vim.notify(). Failed previews cannot be
+confirmed. Saving errors warn while keeping the successfully applied theme.
+close() is also called before direct switching/cycling. register() affects the
+next picker opening; it does not modify an already open picker's list.
+
+After a confirmed selection or successful direct application, this event fires:
+>
+  vim.api.nvim_create_autocmd("User", {
+    pattern = "ThemeToolsChanged",
+    callback = function(event)
+      -- event.data: {name, colorscheme, background}
+    end,
+  })
+<
+Normal ColorScheme events run during preview and restoration, so existing
+highlight integrations follow the preview. ThemeToolsChanged is emitted only
+when committing a selection (including startup restore/default), never merely
+for previews or cancellation. Use an adaptive statusline theme if you want it
+to follow colorscheme changes rather than holding a fixed theme palette.
+
+BEHAVIOR                                              *theme-tools-behavior*
+
+Cancellation restores the opening colorscheme, 'background', global highlight
+definitions (including manual overrides), g:colors_name and g:terminal_color_0
+through g:terminal_color_15. Failed loads restore the last successful palette.
+No state is saved while browsing, filtering, resizing or cancelling.
+
+This restoration covers colors, not arbitrary side effects from theme scripts,
+before callbacks or ColorScheme autocommands. Avoid callbacks that mutate buffers
+or unrelated editor options. Existing terminal jobs may retain their own colors.
+The picker exits Insert mode when it closes and leaves source text unchanged.
+
+The plugin loads no themes or mappings just from require("theme_tools"). Normal
+plugin loading installs :ThemeTools, :ThemeToolsNext and :ThemeToolsPrev. setup()
+also installs them and is required on startup to restore saved choices.
+
+vim:tw=78:ts=8:noet:ft=help:norl:
