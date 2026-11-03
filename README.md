@@ -10,6 +10,7 @@ Search themes, preview them across the editor, and keep the one you like.
   highlights and terminal palette globals.
 - Direct switching, cycling, command completion and a Lua API are included.
 - Catppuccin downloads once at a fixed revision and works offline afterward.
+- Restoring an unchanged saved choice skips writing state; picker UI loads on demand.
 
 ## Install
 

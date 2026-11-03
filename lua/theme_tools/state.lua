@@ -14,6 +14,11 @@ function M.read(path)
 end
 
 function M.write(path, name)
+  -- Startup restoration and repeated confirmations need no disk write. Read
+  -- the file each time so a choice saved by another instance is still replaced.
+  if M.read(path) == name then
+    return true
+  end
   local temporary = path .. ".tmp." .. vim.uv.os_getpid()
   local ok, err = pcall(function()
     vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")

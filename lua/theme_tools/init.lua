@@ -115,7 +115,10 @@ local function commit(theme)
 end
 
 function M.close()
-  require("theme_tools.picker").close()
+  local builtin = package.loaded["theme_tools.picker"]
+  if builtin then
+    builtin.close()
+  end
   local selection = package.loaded["theme_tools.integrations.selection"]
   if selection then
     selection.close()

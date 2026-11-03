@@ -36,6 +36,7 @@ local opts = {
   },
 }
 theme.setup(opts)
+assert(not package.loaded["theme_tools.picker"], "startup must not load the builtin picker")
 assert(#theme.list() == 4, "explicit list should not include discovered themes")
 assert(theme.set("night"))
 assert(theme.current() == "night")
@@ -63,8 +64,18 @@ theme.register("alias")
 assert(theme.set("alias") and vim.g.colors_name == "desert")
 assert(theme.current() == "alias", "aliases must retain their registered ID")
 assert(theme.next() and theme.current() == "night", "cycling must use alias position")
+local saved = vim.uv.fs_stat(path)
 theme.setup(opts)
 assert(theme.current() == "night", "setup should restore the saved ID")
+local restored = vim.uv.fs_stat(path)
+assert(
+  saved.ino == restored.ino and vim.deep_equal(saved.mtime, restored.mtime),
+  "restoring the same choice must not rewrite state"
+)
+-- Another instance can change the saved choice: a new confirmation must win.
+vim.fn.writefile({ '{"name":"day"}' }, path)
+assert(theme.set("night"))
+assert(vim.json.decode(table.concat(vim.fn.readfile(path))).name == "night")
 theme.register({ name = "night", colorscheme = "evening" })
 assert(#theme.list() == 4)
 assert(theme.set("night") and vim.g.colors_name == "evening")
