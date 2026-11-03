@@ -30,7 +30,7 @@ for backend in ("builtin", "selection_tools"):
           vim.opt.rtp:prepend(vim.fn.getcwd())
           t=require('theme_tools'); path=vim.fn.tempname(); changes=0
           t.setup({catppuccin=false,dracula=false,state_file=path,default='night',
-            picker={backend=""" + json.dumps(backend) + """},themes={
+            picker={preview_mode='live',backend=""" + json.dumps(backend) + """},themes={
               {name='night',colorscheme='habamax',background='dark'},
               {name='dusk',colorscheme='desert',background='dark'},
               {name='day',colorscheme='morning',background='light'},

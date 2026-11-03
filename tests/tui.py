@@ -101,7 +101,7 @@ def main():
         init.write_text(f"""vim.opt.rtp:prepend({json.dumps(str(root))})
     vim.o.swapfile=false
     t=require('theme_tools')
-    t.setup({{catppuccin=false,state_file={json.dumps(str(state))},picker={{group_by_background=false}},default='habamax',themes={{'habamax','morning','desert'}}}})
+    t.setup({{catppuccin=false,state_file={json.dumps(str(state))},picker={{group_by_background=false,preview_mode='live'}},default='habamax',themes={{'habamax','morning','desert'}}}})
     vim.keymap.set('n','<F5>',t.pick)
     """)
         term = Terminal(init, directory / "first.sock")

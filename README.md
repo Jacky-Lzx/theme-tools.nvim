@@ -2,9 +2,9 @@
 
 Theme installation and live colorscheme switching for Neovim 0.11+. An independent,
 personal Mocha theme is included, with Catppuccin and Dracula as managed sources.
-Search themes, preview them across the editor, and keep the one you like.
+Search themes, inspect a sample window, and apply the one you like.
 
-- Moving through the picker immediately applies the highlighted theme.
+- Moving through the picker changes only the preview window; the editor keeps its theme.
 - Dark and light themes have separate lists; category navigation never previews.
 - Enter confirms and remembers your choice for the next startup.
 - Escape or Ctrl-C restores the original colorscheme, background, custom
@@ -95,8 +95,8 @@ Install `selection-tools.nvim` as a dependency, using a version with the
 `on_change` callback. In a local lazy.nvim setup, add its checkout to `dependencies` (see
 [examples/lazy.lua](examples/lazy.lua)). `:ThemeTools` then uses its compact
 single-selection picker, initially highlighting the active theme. Moving or
-filtering previews colors across the editor; Enter commits, and cancelling
-restores the opening palette. Existing selection-tools key bindings apply.
+filtering updates a separate theme sample; Enter applies and saves the theme.
+Cancelling leaves the editor unchanged. Existing selection-tools key bindings apply.
 `picker.selection` accepts per-picker layout, matcher and key overrides.
 
 ## Use
@@ -112,6 +112,7 @@ The selection-tools backend uses its configured matching and key bindings.
 | Enter | Confirm and save |
 | Escape / Ctrl-C | Cancel and restore |
 | Ctrl-G | Open the theme category menu; Enter opens a category |
+| Ctrl-D / Ctrl-U | Scroll the theme sample (selection-tools inherits its own preview keys) |
 | `:ThemeTools catppuccin-latte` | Apply a theme by its registered name |
 | `:ThemeToolsNext` / `:ThemeToolsPrev` | Cycle the configured order, wrapping at the ends |
 
@@ -119,19 +120,39 @@ Builtin picker navigation stops at the first and last match. Leaving or closing 
 picker cancels it. The picker fits terminal resizes and closes when space is too
 small. No global mappings are installed.
 
+The preview contains syntax-colored Lua, search matches, visual selections,
+diagnostics, completion items, diff colors, a statusline and a floating-window
+sample. Theme code runs in a disposable background Neovim; its highlights are
+applied only in the sample window's namespace. The editor, picker, background
+mode, terminal palette and saved choice remain unchanged until Enter. Preview
+requests are coalesced, stale results are ignored, and the worker closes with
+the picker. It adds no process or preview modules to startup.
+
+Transparent themes use a solid canvas inside the sample so their colors remain
+visible against both dark and light editor themes. Enter still applies the
+theme's actual transparency. On very small screens the sample may be hidden;
+confirmation remains available without a preview.
+
+Set `picker.preview_mode = "live"` to restore editor-wide previews. The default is
+`"window"`. Post-ColorScheme custom highlights can be mirrored in the worker with
+`picker.preview_after = function(theme) ... end`; your host autocommands are not
+run during browsing. Lua configuration closures and their upvalues are copied to
+the worker. Nontransferable values show an error in the pane; Enter still tries
+the actual theme in the editor.
+
 The picker opens the active theme's **Dark** or **Light** list. Moving or searching
 inside one list cannot select a theme from the other. Press **Ctrl-G**, choose a
 category, then press Enter to browse it. Merely highlighting a category keeps the
-editor palette unchanged. Empty search results retain the last preview, avoiding
-brightness changes while typing. Cancelling restores the theme active when the
+editor palette unchanged. Cancelling preserves the theme active when the
 picker opened; category selection is never saved as a theme choice.
 
 Independent Mocha, the four Catppuccin variants, Dracula and Dracula Soft have
 built-in background metadata. Give other registered themes `background = "dark"`
-or `"light"` to classify them. Unknown themes appear under **Unclassified**, where
-they apply only on Enter, so browsing an unknown theme cannot unexpectedly flash
-the screen. Set `picker.group_by_background = false` to use the previous combined
-list with automatic previews for every theme.
+or `"light"` to classify them. Unknown themes appear under **Unclassified** and can
+also be inspected safely in the sample. In legacy live mode, unknown themes apply
+only on Enter and empty searches retain the last preview. Set
+`picker.group_by_background = false` to use a combined list; preview isolation
+is controlled separately by `picker.preview_mode`.
 
 For installation paths, theme options, custom labels, light/dark variants, persistence and
 events, see the [configuration reference](doc/theme-tools.txt) or

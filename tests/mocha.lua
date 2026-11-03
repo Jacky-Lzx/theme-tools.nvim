@@ -9,6 +9,7 @@ themes.setup({
 })
 assert(vim.g.colors_name == "theme-tools-mocha")
 assert(not package.loaded.catppuccin and not package.loaded["theme_tools.providers.catppuccin"])
+assert(not package.loaded["theme_tools.preview"] and not package.loaded["theme_tools.sample"])
 assert(not package.loaded["theme_tools.mocha.palette"] and not package.loaded["theme_tools.mocha.build"])
 assert(vim.fn.isdirectory(install_root) == 0)
 local palette = require("theme_tools.mocha.palette")

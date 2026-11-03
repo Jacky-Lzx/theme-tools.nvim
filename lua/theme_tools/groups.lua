@@ -46,7 +46,7 @@ function M.open(themes, current, opts, confirm, picker)
     local options = vim.tbl_extend("force", {}, opts, {
       prompt = labels[group] .. " · Ctrl-G: groups",
       retain_preview = true,
-      preview = group ~= "unknown",
+      preview = opts.preview_mode == "window" or group ~= "unknown",
       on_group = function()
         picker.close()
         transition(function()
@@ -54,7 +54,7 @@ function M.open(themes, current, opts, confirm, picker)
         end)
       end,
     })
-    if group == "unknown" then
+    if group == "unknown" and opts.preview_mode ~= "window" then
       options.prompt = "Unclassified · Enter: apply · Ctrl-G: groups"
     end
     return picker.open(groups[group], current, options, function(theme)

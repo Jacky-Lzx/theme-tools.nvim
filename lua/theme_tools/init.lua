@@ -8,7 +8,14 @@ local defaults = {
   catppuccin = {},
   dracula = {},
   install = { root = vim.fn.stdpath("data") .. "/theme-tools/themes", timeout = 30000 },
-  picker = { backend = "builtin", width = 52, height = 12, border = "rounded", group_by_background = true },
+  picker = {
+    backend = "builtin",
+    width = 52,
+    height = 12,
+    border = "rounded",
+    group_by_background = true,
+    preview_mode = "window",
+  },
 }
 local config = vim.deepcopy(defaults)
 local registered = {}
@@ -135,6 +142,26 @@ local function commit(theme)
   })
 end
 
+-- Private worker configuration, read only when the theme picker needs a preview.
+function M._preview_options()
+  local lazy = package.loaded["lazy.core.config"]
+  local plugins
+  if lazy then
+    plugins = {}
+    for name in pairs(lazy.plugins or {}) do
+      plugins[name] = {}
+    end
+  end
+  return {
+    catppuccin = config.catppuccin,
+    dracula = config.dracula,
+    install = config.install,
+    after = config.picker.preview_after,
+    plugins = plugins,
+    background = vim.o.background,
+  }
+end
+
 function M.close()
   local groups = package.loaded["theme_tools.groups"]
   if groups then
@@ -250,6 +277,11 @@ function M.setup(opts)
   assert(type(new.picker.height) == "number" and new.picker.height >= 1, "picker.height must be positive")
   assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid picker.backend")
   assert(type(new.picker.group_by_background) == "boolean", "picker.group_by_background must be boolean")
+  assert(vim.tbl_contains({ "window", "live" }, new.picker.preview_mode), "invalid picker.preview_mode")
+  assert(
+    new.picker.preview_after == nil or type(new.picker.preview_after) == "function",
+    "preview_after must be a function"
+  )
   assert(type(new.catppuccin) == "table" or new.catppuccin == false, "catppuccin must be an options table or false")
   assert(type(new.dracula) == "table" or new.dracula == false, "dracula must be an options table or false")
   assert(type(new.install.root) == "string" and new.install.root ~= "", "install.root must be nonempty")

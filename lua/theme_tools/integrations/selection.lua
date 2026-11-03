@@ -27,6 +27,10 @@ function M.open(themes, current, opts, confirm)
     end
   end
   local session = { original = colors.snapshot(), previewed = current }
+  local window_preview = opts.preview_mode ~= "live" and opts.apply ~= false
+  if window_preview then
+    session.viewer = require("theme_tools.preview").new()
+  end
   active = session
   local function preview(theme)
     if active ~= session then
@@ -53,7 +57,7 @@ function M.open(themes, current, opts, confirm)
     kind = "theme_tools",
     resume = false,
     multi = false,
-    preview = { enabled = false },
+    preview = { enabled = window_preview },
     item_icons = false,
     keys = {
       theme_groups = opts.on_group and { "<C-g>" } or {},
@@ -80,7 +84,7 @@ function M.open(themes, current, opts, confirm)
     end,
     on_change = function(theme, _, picker)
       session.picker = picker
-      if opts.preview == false then
+      if window_preview or opts.preview == false then
         return
       end
       local ok, err = preview(theme)
@@ -93,28 +97,58 @@ function M.open(themes, current, opts, confirm)
       if opts.apply == false then
         return true
       end
-      local ok, err = preview(ctx.item)
+      local ok, err
+      if window_preview then
+        ok, err = colors.apply(ctx.item)
+      else
+        ok, err = preview(ctx.item)
+      end
       return ok == true, err
     end,
     on_close = function(_, outcome)
       session.closed = true
+      if session.viewer then
+        session.viewer:close()
+      end
       if active == session then
         active = nil
-        if outcome.reason ~= "confirm" and opts.preview ~= false then
+        if outcome.reason ~= "confirm" and opts.preview ~= false and not window_preview then
           colors.restore(session.original)
         end
       end
     end,
   })
+  if window_preview then
+    spec.layout = vim.tbl_deep_extend("force", {
+      height = 0.85,
+      preview_height = 0.65,
+      min_width = 80,
+    }, (opts.selection or {}).layout or {})
+    spec.previewer = function(ctx)
+      session.viewer:show(ctx.item, function(frame, err)
+        if not ctx.is_cancelled() then
+          ctx.paint(function(buf, win)
+            require("theme_tools.sample").draw(buf, win, ctx.item, frame, err)
+          end, { title = ctx.item.label or ctx.item.name })
+        end
+      end)
+      return true
+    end
+  end
   local ok, picker = pcall(selection.select, items, spec, function(theme)
     if theme then
       confirm(theme)
     end
   end)
   if not ok then
+    if session.viewer then
+      session.viewer:close()
+    end
     if not session.closed then
       active = nil
-      colors.restore(session.original)
+      if not window_preview then
+        colors.restore(session.original)
+      end
     end
     return nil, tostring(picker)
   end

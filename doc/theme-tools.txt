@@ -37,6 +37,7 @@ CONFIGURATION                                         *theme-tools-config*
     picker = {
       backend = "builtin", width = 52, height = 12, border = "rounded",
       group_by_background = true,
+      preview_mode = "window", -- "live" restores editor-wide previews
     },
   })
 <
@@ -103,12 +104,35 @@ Independent Mocha, Dracula and Dracula Soft infer background="dark".
 By default picker.group_by_background=true separates dark and light theme lists.
 The active theme's category opens first. Ctrl-G opens a category menu; highlighting
 a category does not preview anything. Enter opens that category's themes. Group
-selection never writes theme state or emits ThemeToolsChanged. Empty searches in
-grouped lists retain the last preview. Cancelling restores the opening palette.
-Themes without background metadata appear in Unclassified and preview only when
-confirmed with Enter. Set a theme's background="dark" or "light" to classify it.
-picker.group_by_background=false restores a combined list with live previews.
+selection never writes theme state or emits ThemeToolsChanged. The default window
+preview keeps the editor unchanged. Themes without background metadata appear in
+Unclassified and can also be inspected in the sample window. In legacy live mode,
+empty searches retain the last preview and unknown themes apply only on Enter.
+Set a theme's background="dark" or "light" to classify it.
+picker.group_by_background=false uses a combined list without changing preview mode.
 Ctrl-G is local to grouped theme pickers; no global mappings are installed.
+
+picker.preview_mode="window" renders the selected theme in a sample pane. It
+contains syntax, search, visual selection, diagnostics, completion, diff, statusline
+and floating-window examples. Theme code and before callbacks run in an embedded
+background Neovim, and only the sample window receives its highlight namespace.
+The host theme, background, terminal globals and selection state stay unchanged.
+Enter applies and saves the actual theme, even if the sample is not ready yet.
+The worker and cached samples live only for that picker; cancellation stops the
+worker, and outdated responses cannot paint a closed or newer selection.
+No preview code or child process is loaded at startup.
+
+Ctrl-D/Ctrl-U scroll the builtin pane; selection-tools inherits its preview keys.
+On very small terminals the sample is hidden. Transparent themes use a solid
+preview canvas; actual application retains their configured transparency.
+Set picker.preview_mode="live" to restore editor-wide previews instead.
+
+Host ColorScheme autocommands do not run in the worker. Use an optional
+picker.preview_after=function(theme) ... end to mirror custom highlight overrides.
+This callback runs after the worker loads the theme. Lua closures and their
+upvalues are copied; C functions, userdata and host-only state cannot be transferred.
+Errors appear in the pane without applying the theme. Enter still attempts the
+normal application; a failed application cannot be committed or saved.
 
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
 on_change API). It inherits that plugin's compact select layout, matching and
@@ -146,8 +170,8 @@ API                                                   *theme-tools-api*
 <
 install(), pick(), set(), next() and prev() return true on success or nil, error
 on failure.
-Commands report these errors with vim.notify(). Failed previews cannot be
-confirmed. Saving errors warn while keeping the successfully applied theme.
+Commands report these errors with vim.notify(). A failed actual theme application
+cannot be confirmed. Saving errors warn while keeping the successfully applied theme.
 close() is also called before direct switching/cycling. register() affects the
 next picker opening; it does not modify an already open picker's list.
 
@@ -160,8 +184,8 @@ After a confirmed selection or successful direct application, this event fires:
     end,
   })
 <
-Normal ColorScheme events run during preview and restoration, so existing
-highlight integrations follow the preview. ThemeToolsChanged is emitted only
+In window mode, host ColorScheme events run only when applying a theme. In legacy
+live mode they also run during preview and restoration. ThemeToolsChanged is emitted only
 when committing a selection (including startup restore/default), never merely
 for previews or cancellation. Use an adaptive statusline theme if you want it
 to follow colorscheme changes rather than holding a fixed theme palette.

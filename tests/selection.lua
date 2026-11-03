@@ -16,7 +16,7 @@ local path = vim.fn.tempname()
 local opts = {
   catppuccin = false,
   state_file = path,
-  picker = { backend = "selection_tools", group_by_background = false },
+  picker = { backend = "selection_tools", group_by_background = false, preview_mode = "live" },
   themes = {
     "habamax",
     "morning",
