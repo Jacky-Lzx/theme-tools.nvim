@@ -6,14 +6,13 @@ return {
     lazy = false,
     priority = 1000,
     dependencies = {
-      { "catppuccin/nvim", name = "catppuccin", opts = {} },
       {
         dir = vim.fn.expand("~/Documents/Github/nvim_plugins/selection-tools.nvim"),
         name = "selection-tools.nvim",
       },
-      -- Add more colorscheme plugins here.
     },
     opts = {
+      catppuccin = { transparent_background = true },
       default = "catppuccin-mocha",
       picker = { backend = "selection_tools" },
       themes = {

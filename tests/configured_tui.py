@@ -30,6 +30,8 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     try:
         assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"
         assert term.lua("return require('lazy.core.config').plugins['theme-tools.nvim'].dir") == str(Path(__file__).resolve().parent.parent)
+        assert term.lua("return require('lazy.core.config').plugins.catppuccin == nil")
+        assert term.lua("local p=require('theme_tools.providers.catppuccin').source; local dir=vim.fn.stdpath('data') .. '/theme-tools/themes/' .. p.name .. '/' .. p.commit; return debug.getinfo(require('catppuccin').setup,'S').source:sub(1,#dir+1) == '@' .. dir")
         assert term.lua("return vim.fn.maparg('<leader>ut','n')") == "<Cmd>ThemeTools<CR>"
         term.keys(b" ut")
         assert term.lua("return vim.bo.filetype") == "selection_tools_input"

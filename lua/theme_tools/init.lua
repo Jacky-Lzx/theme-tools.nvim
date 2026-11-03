@@ -5,6 +5,8 @@ local defaults = {
   discover = true,
   persist = true,
   state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
+  catppuccin = {},
+  install = { root = vim.fn.stdpath("data") .. "/theme-tools/themes", timeout = 30000 },
   picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
 }
 local config = vim.deepcopy(defaults)
@@ -13,6 +15,17 @@ local selected
 
 local function notify(err)
   vim.notify(tostring(err), vim.log.levels.WARN, { title = "theme-tools" })
+end
+
+function M.install()
+  if config.catppuccin == false then
+    return true
+  end
+  local path, err = require("theme_tools.providers.catppuccin").load(config.install, config.catppuccin)
+  if not path then
+    return nil, err
+  end
+  return true
 end
 
 local function normalize(theme)
@@ -189,6 +202,9 @@ function M.commands()
       run(callback)
     end, { desc = "Cycle colorschemes" })
   end
+  vim.api.nvim_create_user_command("ThemeToolsInstall", function()
+    run(M.install)
+  end, { desc = "Download and load configured themes" })
 end
 
 function M.setup(opts)
@@ -202,6 +218,9 @@ function M.setup(opts)
   assert(type(new.picker.width) == "number" and new.picker.width >= 1, "picker.width must be positive")
   assert(type(new.picker.height) == "number" and new.picker.height >= 1, "picker.height must be positive")
   assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid picker.backend")
+  assert(type(new.catppuccin) == "table" or new.catppuccin == false, "catppuccin must be an options table or false")
+  assert(type(new.install.root) == "string" and new.install.root ~= "", "install.root must be nonempty")
+  assert(type(new.install.timeout) == "number" and new.install.timeout > 0, "install.timeout must be positive")
   assert(opts.themes == nil or vim.islist(opts.themes), "themes must be a list")
   local themes = vim.tbl_map(normalize, opts.themes or {})
   M.close()
@@ -210,6 +229,10 @@ function M.setup(opts)
     M.register(theme)
   end
   M.commands()
+  local installed, install_error = M.install()
+  if not installed then
+    notify(install_error)
+  end
   local name, err
   if config.persist then
     name, err = state.read(config.state_file)

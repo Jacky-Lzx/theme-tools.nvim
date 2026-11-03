@@ -35,7 +35,7 @@ try:
       s.select=function(...) p=original(...); return p end
       s.setup({keys={next={'<A-j>','<C-n>','<Down>'},previous={'<A-k>','<C-p>','<Up>'}}})
       path=vim.fn.tempname()
-      t.setup({state_file=path,picker={backend='selection_tools'},themes={'habamax','morning','desert'}})
+      t.setup({catppuccin=false,state_file=path,picker={backend='selection_tools'},themes={'habamax','morning','desert'}})
       assert(t.set('habamax')); assert(t.pick())
     """)
     assert "Themes" in screen() and "morning" in screen()

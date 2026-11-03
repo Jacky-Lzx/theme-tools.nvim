@@ -26,6 +26,7 @@ vim.api.nvim_create_autocmd("User", {
   end,
 })
 local opts = {
+  catppuccin = false,
   state_file = path,
   themes = {
     { name = "night", colorscheme = "habamax", background = "dark" },
@@ -74,13 +75,13 @@ assert(theme.current() == "day")
 vim.fn.writefile({ "not JSON" }, path)
 theme.setup(opts)
 assert(warnings[#warnings]:find("Invalid theme state", 1, true))
-theme.setup({ persist = false, themes = { "habamax", "desert" }, state_file = path })
+theme.setup({ catppuccin = false, persist = false, themes = { "habamax", "desert" }, state_file = path })
 assert(theme.set("habamax"))
 assert(table.concat(vim.fn.readfile(path)) == "not JSON", "persist=false must not write")
-theme.setup({ persist = false, discover = false })
+theme.setup({ catppuccin = false, persist = false, discover = false })
 assert(not theme.next())
 assert(not theme.pick())
-theme.setup({ persist = false })
+theme.setup({ catppuccin = false, persist = false })
 assert(#theme.list() > 0)
 assert(vim.fn.exists(":ThemeTools") == 2 and vim.fn.exists(":ThemeToolsNext") == 2)
 assert(vim.tbl_contains(vim.fn.getcompletion("ThemeTools hab", "cmdline"), "habamax"))

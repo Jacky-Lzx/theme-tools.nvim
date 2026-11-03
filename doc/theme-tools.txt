@@ -9,6 +9,11 @@ CONTENTS                                              *theme-tools*
 CONFIGURATION                                         *theme-tools-config*
 >
   require("theme_tools").setup({
+    catppuccin = { transparent_background = true }, -- passed to Catppuccin setup
+    install = {
+      root = vim.fn.stdpath("data") .. "/theme-tools/themes",
+      timeout = 30000, -- total download timeout in milliseconds
+    },
     -- With no themes list, discover defaults to true. With a list, it is false.
     themes = {
       "catppuccin-mocha",
@@ -29,6 +34,23 @@ CONFIGURATION                                         *theme-tools-config*
     picker = { backend = "builtin", width = 52, height = 12, border = "rounded" },
   })
 <
+Catppuccin is a built-in managed source, downloaded from its official Git
+repository at the commit pinned in theme_tools.providers.catppuccin. setup()
+installs it if missing, adds it to runtimepath and passes the catppuccin table
+to require("catppuccin").setup(). No separate Catppuccin plugin spec is needed.
+Use catppuccin=false to disable both managed installation and configuration.
+Installation is independent of the themes picker list.
+
+The first download requires Git and network access. Subsequent startups reuse
+the installed revision without invoking Git or fetching. Source checkouts live
+under install.root/catppuccin/<commit>. A temporary directory is checked out and
+verified before it is published. Failed downloads clean up only their own
+temporary directories; an incomplete existing target is reported, not overwritten.
+The fixed revision is updated by updating theme-tools and restarting Neovim;
+no background updater runs.
+The install timeout bounds the complete Git operation. Other installed themes
+remain usable if a managed download fails. :ThemeToolsInstall retries downloads.
+
 Themes may be strings or tables. Names must be nonempty without whitespace;
 labels are for display only. Duplicate names replace the earlier definition
 while preserving its position. Width and height are maximum cell counts, clamped
@@ -58,6 +80,7 @@ API                                                   *theme-tools-api*
 >
   local themes = require("theme_tools")
   themes.pick()                     -- open a searchable live preview
+  themes.install()                  -- ensure configured managed themes are loaded
   themes.close()                    -- cancel preview; safe to repeat
   themes.set("catppuccin-mocha")     -- apply and save
   themes.next()                     -- apply next, wrapping
@@ -66,7 +89,8 @@ API                                                   *theme-tools-api*
   themes.list()                     -- copied list in picker/cycling order
   themes.register({ name = "night", colorscheme = "habamax" })
 <
-pick(), set(), next() and prev() return true on success or nil, error on failure.
+install(), pick(), set(), next() and prev() return true on success or nil, error
+on failure.
 Commands report these errors with vim.notify(). Failed previews cannot be
 confirmed. Saving errors warn while keeping the successfully applied theme.
 close() is also called before direct switching/cycling. register() affects the
@@ -100,7 +124,8 @@ or unrelated editor options. Existing terminal jobs may retain their own colors.
 The picker exits Insert mode when it closes and leaves source text unchanged.
 
 The plugin loads no themes or mappings just from require("theme_tools"). Normal
-plugin loading installs :ThemeTools, :ThemeToolsNext and :ThemeToolsPrev. setup()
-also installs them and is required on startup to restore saved choices.
+plugin loading installs :ThemeTools, :ThemeToolsNext, :ThemeToolsPrev and
+:ThemeToolsInstall. setup() also installs them and is required on startup to
+restore saved choices.
 
 vim:tw=78:ts=8:noet:ft=help:norl:

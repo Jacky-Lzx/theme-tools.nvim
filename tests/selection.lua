@@ -14,6 +14,7 @@ vim.notify = function(message)
 end
 local path = vim.fn.tempname()
 local opts = {
+  catppuccin = false,
   state_file = path,
   picker = { backend = "selection_tools" },
   themes = {
@@ -77,6 +78,7 @@ themes.setup(opts)
 assert(picker.closed and vim.g.colors_name == "morning")
 assert(#vim.api.nvim_list_wins() == 1)
 themes.setup({
+  catppuccin = false,
   persist = false,
   themes = { "habamax" },
   picker = {

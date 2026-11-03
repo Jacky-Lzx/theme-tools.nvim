@@ -7,6 +7,7 @@ export XDG_STATE_HOME="$test_root/state" XDG_CACHE_HOME="$test_root/cache" XDG_D
 export NVIM_LOG_FILE="$test_root/nvim.log" PYTHONDONTWRITEBYTECODE=1
 export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/core.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/install.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 python3 tests/ui.py
 python3 tests/selection_ui.py
