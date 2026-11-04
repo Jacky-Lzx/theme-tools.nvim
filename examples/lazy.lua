@@ -19,6 +19,7 @@ return {
       picker = { backend = "selection_tools" },
       themes = {
         "theme-tools-mocha",
+        "theme-tools-dracula",
         "dracula",
         "catppuccin-latte",
         "catppuccin-frappe",

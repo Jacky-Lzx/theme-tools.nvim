@@ -19,6 +19,7 @@ CONFIGURATION                                         *theme-tools-config*
     -- With no themes list, discover defaults to true. With a list, it is false.
     themes = {
       "theme-tools-mocha",         -- included independent personal theme
+      "theme-tools-dracula",       -- included independent personal Dracula
       "dracula",
       "catppuccin-mocha",
       {
@@ -61,7 +62,7 @@ theme_tools.providers.dracula. Register "dracula" or "dracula-soft" and pass its
 upstream options through dracula={...}. Its source downloads to
 install.root/dracula/<commit> and initializes only when selected or explicitly
 installed. dracula=false disables this managed source. Choosing one managed theme
-does not initialize the other; independent Mocha requires neither provider.
+does not initialize the other; independent Mocha and Dracula require neither provider.
 
 theme-tools-mocha is an independent personal theme derived from Mocha with a fixed
 set of integrations, transparent backgrounds and personal highlight overrides.
@@ -77,6 +78,20 @@ is deterministic, offline and independent of upstream. vim.loader can cache the
 generated Lua source as local bytecode. The palette is also available through
 require("theme_tools.mocha.palette") for statusline components. See the README
 and LICENSE.catppuccin for provenance and maintenance details.
+
+theme-tools-dracula is an independent personal Dracula derived from
+Mofiqul/dracula.nvim at ae752c13e95fb7c5f58da4b5123cb804ea7568ee. It loads generated
+highlights without downloading or initializing the managed Dracula provider.
+dracula={...} options affect only the original dracula/dracula-soft themes.
+Its editor, floats and statusline are transparent by default; use a registered
+transparent=false preference or the picker toggle to make them opaque.
+PmenuSel sets only background and bold, preserving completion column colors.
+Edit lua/theme_tools/dracula/palette.lua and groups/*.lua, then run:
+>
+  nvim --headless -u NONE -l scripts/build_dracula.lua
+<
+Commit those sources and colors/theme-tools-dracula.lua together. Its lualine
+auto theme uses the local palette without upstream setup. See LICENSE.dracula.
 
 When Lazy and vim.loader are active, integration detection uses Lazy's existing
 plugin inventory plus native vim.pack packages. Catppuccin receives resolved
@@ -107,7 +122,7 @@ unless icons.picker overrides them. Border uses nvim_open_win() border syntax.
 The four explicit Catppuccin variants infer their light/dark background unless
 overridden. This prevents Catppuccin's remembered flavour from mistaking a later
 selection for a background-mode toggle after an independent theme was active.
-Independent Mocha, Dracula and Dracula Soft infer background="dark".
+theme-tools-mocha, theme-tools-dracula, dracula and dracula-soft infer background="dark".
 
 By default picker.group_by_background=true separates dark and light theme lists.
 The active theme's category opens first. Ctrl-G opens a category menu; highlighting

@@ -1,9 +1,14 @@
 return function()
-  local provider = package.loaded.dracula
-  if not provider then
-    return
+  local c
+  if vim.g.colors_name == "theme-tools-dracula" then
+    c = require("theme_tools.dracula.palette")
+  else
+    local provider = package.loaded.dracula
+    if not provider then
+      return
+    end
+    c = provider.colors()
   end
-  local c = provider.colors()
   return {
     bg = c.bg,
     fg = c.fg,

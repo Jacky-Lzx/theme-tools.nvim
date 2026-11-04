@@ -14,13 +14,18 @@ if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-too
 fi
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/integrations.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/mocha.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/dracula.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/palette.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/transparency.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l scripts/build_mocha.lua --check
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l scripts/build_dracula.lua --check
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icon_preview.lua
 python3 tests/ui.py
+if [ -d ../completion-tools.nvim ]; then
+  python3 tests/dracula_ui.py
+fi
 python3 tests/palette_ui.py
 python3 tests/transparency_ui.py
 python3 tests/selection_ui.py

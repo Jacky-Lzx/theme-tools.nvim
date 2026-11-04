@@ -46,6 +46,8 @@ local function render(request)
       local palette
       if theme.colorscheme == "theme-tools-mocha" then
         palette = require("theme_tools.mocha.palette").base
+      elseif theme.colorscheme == "theme-tools-dracula" then
+        palette = require("theme_tools.dracula.palette").bg
       elseif theme.colorscheme:match("^catppuccin") and package.loaded.catppuccin then
         palette = require("catppuccin.palettes").get_palette().base
       elseif theme.colorscheme:match("^dracula") and package.loaded.dracula then

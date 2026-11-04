@@ -1,0 +1,157 @@
+-- Derived from Mofiqul/dracula.nvim (MIT); see LICENSE.dracula.
+return function(c)
+  return {
+    -- TreeSitter
+    ["@error"] = { fg = c.bright_red },
+    ["@punctuation.delimiter"] = { fg = c.fg },
+    ["@punctuation.bracket"] = { fg = c.fg },
+    ["@markup.list"] = { fg = c.cyan },
+
+    ["@constant"] = { fg = c.purple },
+    ["@constant.builtin"] = { fg = c.purple },
+    ["@markup.link.label.symbol"] = { fg = c.purple },
+
+    ["@constant.macro"] = { fg = c.cyan },
+    ["@string.regexp"] = { fg = c.red },
+    ["@string"] = { fg = c.yellow },
+    ["@string.escape"] = { fg = c.cyan },
+    ["@string.special.symbol"] = { fg = c.purple },
+    ["@character"] = { fg = c.green },
+    ["@number"] = { fg = c.purple },
+    ["@boolean"] = { fg = c.purple },
+    ["@number.float"] = { fg = c.green },
+    ["@annotation"] = { fg = c.yellow },
+    ["@attribute"] = { fg = c.cyan },
+    ["@module"] = { fg = c.orange },
+
+    ["@function.builtin"] = { fg = c.cyan },
+    ["@function"] = { fg = c.green },
+    ["@function.macro"] = { fg = c.green },
+    ["@variable.parameter"] = { fg = c.orange },
+    ["@variable.parameter.reference"] = { fg = c.orange },
+    ["@function.method"] = { fg = c.green },
+    ["@variable.member"] = { fg = c.orange },
+    ["@property"] = { fg = c.purple },
+    ["@constructor"] = { fg = c.cyan },
+
+    ["@keyword.conditional"] = { fg = c.pink },
+    ["@keyword.repeat"] = { fg = c.pink },
+    ["@label"] = { fg = c.cyan },
+
+    ["@keyword"] = { fg = c.pink },
+    ["@keyword.function"] = { fg = c.cyan },
+    ["@keyword.function.ruby"] = { fg = c.pink },
+    ["@keyword.operator"] = { fg = c.pink },
+    ["@operator"] = { fg = c.pink },
+    ["@keyword.exception"] = { fg = c.purple },
+    ["@type"] = { fg = c.bright_cyan },
+    ["@type.builtin"] = { fg = c.cyan, italic = true },
+    ["@type.qualifier"] = { fg = c.pink },
+    ["@structure"] = { fg = c.purple },
+    ["@keyword.include"] = { fg = c.pink },
+
+    ["@variable"] = { fg = c.fg },
+    ["@variable.builtin"] = { fg = c.purple },
+
+    ["@markup"] = { fg = c.orange },
+    ["@markup.strong"] = { fg = c.orange, bold = true }, -- bold
+    ["@markup.emphasis"] = { fg = c.yellow, italic = true }, -- italic
+    ["@markup.underline"] = { fg = c.orange },
+    ["@markup.heading"] = { fg = c.pink, bold = true }, -- title
+    ["@markup.raw"] = { fg = c.yellow }, -- inline code
+    ["@markup.link.url"] = { fg = c.yellow, italic = true }, -- urls
+    ["@markup.link"] = { fg = c.orange, bold = true },
+
+    ["@tag"] = { fg = c.cyan },
+    ["@tag.attribute"] = { fg = c.green },
+    ["@tag.delimiter"] = { fg = c.cyan },
+
+    -- Semantic
+    ["@class"] = { fg = c.cyan },
+    ["@struct"] = { fg = c.cyan },
+    ["@enum"] = { fg = c.cyan },
+    ["@enumMember"] = { fg = c.purple },
+    ["@event"] = { fg = c.cyan },
+    ["@interface"] = { fg = c.cyan },
+    ["@modifier"] = { fg = c.cyan },
+    ["@regexp"] = { fg = c.yellow },
+    ["@typeParameter"] = { fg = c.cyan },
+    ["@decorator"] = { fg = c.cyan },
+
+    -- LSP Semantic (0.9+)
+    ["@lsp.type.class"] = { fg = c.cyan },
+    ["@lsp.type.enum"] = { fg = c.cyan },
+    ["@lsp.type.decorator"] = { fg = c.green },
+    ["@lsp.type.enumMember"] = { fg = c.purple },
+    ["@lsp.type.function"] = { fg = c.green },
+    ["@lsp.type.interface"] = { fg = c.cyan },
+    ["@lsp.type.macro"] = { fg = c.cyan },
+    ["@lsp.type.method"] = { fg = c.green },
+    ["@lsp.type.namespace"] = { fg = c.orange },
+    ["@lsp.type.parameter"] = { fg = c.orange },
+    ["@lsp.type.property"] = { fg = c.purple },
+    ["@lsp.type.struct"] = { fg = c.cyan },
+    ["@lsp.type.type"] = { fg = c.bright_cyan },
+    ["@lsp.type.variable"] = { fg = c.fg },
+
+    -- HTML
+    htmlArg = { fg = c.green },
+    htmlBold = { fg = c.yellow, bold = true },
+    htmlEndTag = { fg = c.cyan },
+    htmlH1 = { fg = c.pink },
+    htmlH2 = { fg = c.pink },
+    htmlH3 = { fg = c.pink },
+    htmlH4 = { fg = c.pink },
+    htmlH5 = { fg = c.pink },
+    htmlH6 = { fg = c.pink },
+    htmlItalic = { fg = c.purple, italic = true },
+    htmlLink = { fg = c.purple, underline = true },
+    htmlSpecialChar = { fg = c.yellow },
+    htmlSpecialTagName = { fg = c.cyan },
+    htmlTag = { fg = c.cyan },
+    htmlTagN = { fg = c.cyan },
+    htmlTagName = { fg = c.cyan },
+    htmlTitle = { fg = c.white },
+
+    -- Markdown
+    markdownBlockquote = { fg = c.yellow, italic = true },
+    markdownBold = { fg = c.orange, bold = true },
+    markdownCode = { fg = c.green },
+    markdownCodeBlock = { fg = c.orange },
+    markdownCodeDelimiter = { fg = c.red },
+    markdownH2 = { link = "rainbow2" },
+    markdownH1 = { link = "rainbow1" },
+    markdownH3 = { link = "rainbow3" },
+    markdownH4 = { link = "rainbow4" },
+    markdownH5 = { link = "rainbow5" },
+    markdownH6 = { link = "rainbow6" },
+    markdownHeadingDelimiter = { fg = c.red },
+    markdownHeadingRule = { fg = c.comment },
+    markdownId = { fg = c.purple },
+    markdownIdDeclaration = { fg = c.cyan },
+    markdownIdDelimiter = { fg = c.purple },
+    markdownItalic = { fg = c.yellow, italic = true },
+    markdownLinkDelimiter = { fg = c.purple },
+    markdownLinkText = { fg = c.pink },
+    markdownListMarker = { fg = c.cyan },
+    markdownOrderedListMarker = { fg = c.red },
+    markdownRule = { fg = c.comment },
+    ["@markup.heading.1.markdown"] = { link = "rainbowcol1" },
+    ["@markup.heading.2.markdown"] = { link = "rainbowcol2" },
+    ["@markup.heading.3.markdown"] = { link = "rainbowcol3" },
+    ["@markup.heading.4.markdown"] = { link = "rainbowcol4" },
+    ["@markup.heading.5.markdown"] = { link = "rainbowcol5" },
+    ["@markup.heading.6.markdown"] = { link = "rainbowcol6" },
+
+    --  Diff
+    diffAdded = { fg = c.green },
+    diffRemoved = { fg = c.red },
+    diffFileId = { fg = c.yellow, bold = true, reverse = true },
+    diffFile = { fg = c.nontext },
+    diffNewFile = { fg = c.green },
+    diffOldFile = { fg = c.red },
+
+    debugPc = { bg = c.menu },
+    debugBreakpoint = { fg = c.red, reverse = true },
+  }
+end

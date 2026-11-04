@@ -65,7 +65,7 @@ def check_shared_colors(term):
       local c=require('theme_tools').palette()
       if c.name~=vim.g.colors_name or c.background~=vim.o.background then return false end
       local bases={['theme-tools-mocha']='#1e1e2e',['catppuccin-mocha']='#1e1e2e',
-        ['catppuccin-latte']='#eff1f5',dracula='#282a36'}
+        ['catppuccin-latte']='#eff1f5',['theme-tools-dracula']='#282a36'}
       if bases[c.name] and c.palette.bg~=bases[c.name] then return false end
       local function color(value) return value=='NONE' and nil or tonumber(value:sub(2),16) end
       local editing
@@ -185,7 +185,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         wait_preview(term, "theme-tools-mocha")
         assert sample_hl(term, "Normal").get("bg") == 0x1E1E2E
         term.keys(b"dracula")
-        wait_preview(term, "dracula")
+        wait_preview(term, "theme-tools-dracula")
         assert sample_hl(term, "Normal")["fg"] == 0xF8F8F2
         assert term.lua(
             "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
@@ -249,12 +249,12 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         assert term.lua("return vim.fn.mode()") == "i"
         term.keys(b"dark\r")
         term.keys(b"dracula")
-        wait_preview(term, "dracula")
+        wait_preview(term, "theme-tools-dracula")
         stable(term)
         term.keys(b"\r")
-        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
-        assert json.loads(path.read_text())["name"] == "dracula"
+        assert json.loads(path.read_text())["name"] == "theme-tools-dracula"
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )
@@ -263,9 +263,29 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     term = Terminal(config / "init.lua", directory / "dracula.sock", before)
     try:
         check_startup(term)
-        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
-        assert term.lua("return package.loaded.catppuccin==nil")
+        assert term.lua("return package.loaded.catppuccin==nil and package.loaded.dracula==nil")
+        # Use the configured completion engine and native Alt-j/Tab input.
+        term.lua("""
+          vim.cmd.enew(); vim.bo.filetype='text'
+          vim.api.nvim_buf_set_lines(0,0,-1,false,{'health help',''})
+          vim.api.nvim_win_set_cursor(0,{2,0})
+        """)
+        term.keys(b"ihel")
+        assert term.lua("""
+          cmp=require('completion-tools'); cmp.show({sources={'buffer'}})
+          return vim.wait(2000,function() return cmp.is_menu_visible() end)
+        """)
+        term.keys(b"\x1bj")
+        accepted = term.lua("return cmp.get_selected_item().label")
+        assert accepted in ("health", "help"), accepted
+        term.keys(b"\t\x1b")
+        assert term.lua("return vim.api.nvim_get_current_line()") == accepted
+        assert term.lua("""
+          local h=vim.api.nvim_get_hl(0,{name='CompletionToolsSelected',link=false})
+          return h.bg==0x44475a and h.bold and h.fg==nil
+        """)
         assert term.lua("return require('theme_tools').set('theme-tools-mocha')")
     finally:
         term.close()
@@ -289,7 +309,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         """)
         term.keys(b" ut")
         term.keys(b"\x1bj")
-        assert term.lua("return vim.g.colors_name") == "dracula"
+        assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
         term.keys(b"\x1bj\x1bj\x1bk")
         assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"

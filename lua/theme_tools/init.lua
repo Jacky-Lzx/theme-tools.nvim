@@ -32,6 +32,7 @@ local sources = {
 }
 local backgrounds = {
   ["theme-tools-mocha"] = "dark",
+  ["theme-tools-dracula"] = "dark",
   dracula = "dark",
   ["dracula-soft"] = "dark",
   ["catppuccin-latte"] = "light",

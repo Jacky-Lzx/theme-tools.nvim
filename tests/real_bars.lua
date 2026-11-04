@@ -43,7 +43,7 @@ local restored = capture()
 for name, value in pairs(startup) do
   assert(vim.deep_equal(value, restored[name]), "bar colors lost after switching back: " .. name)
 end
-assert(themes.set("dracula"))
+assert(themes.set("theme-tools-dracula"))
 assert(themes.set("theme-tools-mocha"))
 restored = capture()
 for name, value in pairs(startup) do

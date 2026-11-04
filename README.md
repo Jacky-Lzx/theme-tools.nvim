@@ -1,7 +1,7 @@
 # theme-tools.nvim
 
-Theme and icon management for Neovim 0.11+. An independent,
-personal Mocha theme is included, with Catppuccin and Dracula as managed sources.
+Theme and icon management for Neovim 0.11+. Independent personal Mocha and
+Dracula themes are included, with Catppuccin and Dracula as managed sources.
 Search themes, inspect a sample window, and apply the one you like.
 
 - Moving through the picker changes only the preview window; the editor keeps its theme.
@@ -11,7 +11,7 @@ Search themes, inspect a sample window, and apply the one you like.
   highlights and terminal palette globals.
 - Direct switching, cycling, command completion and a Lua API are included.
 - Managed themes download once at fixed revisions and work offline afterward.
-- Independent Mocha applies generated highlights directly, without loading Catppuccin.
+- Independent Mocha and Dracula apply generated highlights without loading upstream providers.
 - Restoring an unchanged saved choice skips writing state; picker UI loads on demand.
 - Managed icon providers, ASCII/hidden display, and a shared icon API are included.
 
@@ -31,6 +31,7 @@ For a local checkout with lazy.nvim:
     default = "theme-tools-mocha",
     themes = {
       "theme-tools-mocha",
+      "theme-tools-dracula",
       "dracula",
       "catppuccin-latte",
       "catppuccin-frappe",
@@ -61,8 +62,10 @@ use Catppuccin's detector.
 [Dracula](https://github.com/Mofiqul/dracula.nvim) follows the same download and
 lazy initialization flow, under `stdpath("data")/theme-tools/themes/dracula/`.
 Register `dracula` (or `dracula-soft`) and pass upstream setup options in `dracula`.
-Selecting Dracula initializes only its source. Independent Mocha starts without
-loading either managed source. Set `dracula = false` to disable this provider.
+Selecting upstream Dracula initializes only its source. Independent
+`theme-tools-mocha` and `theme-tools-dracula` start without loading either managed
+source. Set `dracula = false` to disable the upstream provider; the independent
+Dracula theme remains available.
 
 Keep startup colorscheme selection here: a later `vim.cmd.colorscheme(...)` in
 your config would override the restored selection. See [examples/lazy.lua](examples/lazy.lua)
@@ -369,7 +372,7 @@ category, then press Enter to browse it. Merely highlighting a category keeps th
 editor palette unchanged. Cancelling preserves the theme active when the
 picker opened; category selection is never saved as a theme choice.
 
-Independent Mocha, the four Catppuccin variants, Dracula and Dracula Soft have
+Independent Mocha and Dracula, the four Catppuccin variants, Dracula and Dracula Soft have
 built-in background metadata. Give other registered themes `background = "dark"`
 or `"light"` to classify them. Unknown themes appear under **Unclassified** and can
 also be inspected safely in the sample. In legacy live mode, unknown themes apply
@@ -409,6 +412,29 @@ contains direct `nvim_set_hl` calls with merged overrides and literal colors.
 Startup reads only that file; it never loads the source groups or generator.
 Portable Lua source is committed; Neovim's `vim.loader` can cache local bytecode.
 Catppuccin's MIT notice is retained in [LICENSE.catppuccin](LICENSE.catppuccin).
+
+### Personal Dracula
+
+`theme-tools-dracula` derives from Mofiqul/dracula.nvim at
+`ae752c13e95fb7c5f58da4b5123cb804ea7568ee`. Like personal Mocha, it is maintained
+in this repository and loads a generated colorscheme directly, with no upstream
+download, setup or runtime dependency. Upstream `dracula = {...}` options affect
+only `dracula` and `dracula-soft`.
+
+The editor, floating windows and statusline have transparent backgrounds by
+default. The completion selection sets a background and bold text without forcing
+a foreground, preserving candidate, kind and source colors. Register the theme
+with `transparent = false` or use the picker transparency toggle for an opaque base.
+
+- Edit `lua/theme_tools/dracula/palette.lua` for colors.
+- Edit `lua/theme_tools/dracula/groups/{editor,syntax,integrations,custom}.lua`
+  for highlights; personal overrides belong in `custom.lua`.
+- Run `nvim --headless -u NONE -l scripts/build_dracula.lua` and commit the source
+  together with `colors/theme-tools-dracula.lua`.
+- Use `require("theme_tools.dracula.palette")` for statusline colors. The included
+  `lualine.themes.theme-tools-dracula` supports lualine's `theme = "auto"`.
+
+The original license is retained in [LICENSE.dracula](LICENSE.dracula).
 
 ### Validation
 
