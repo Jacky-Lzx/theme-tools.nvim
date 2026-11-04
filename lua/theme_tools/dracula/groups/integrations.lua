@@ -66,6 +66,7 @@ return function(c)
     DiagnosticWarn = { fg = c.yellow },
     DiagnosticInfo = { fg = c.cyan },
     DiagnosticHint = { fg = c.cyan },
+    DiagnosticOk = { fg = c.green },
     DiagnosticUnderlineError = { undercurl = true, sp = c.red },
     DiagnosticUnderlineWarn = { undercurl = true, sp = c.yellow },
     DiagnosticUnderlineInfo = { undercurl = true, sp = c.cyan },
