@@ -6,6 +6,10 @@ return function(c)
     SignColumn = {},
     StatusLine = { fg = c.white },
     TabLineFill = {},
+    MotionToolsMatch = { link = "Search" },
+    MotionToolsLabel = { bg = c.pink, fg = c.black, bold = true },
+    MotionToolsCurrent = { link = "CurSearch" },
+    MotionToolsLens = { link = "Comment" },
     -- Like Mocha, selection adds a background without replacing column colors.
     PmenuSel = { bg = c.selection, bold = true },
     PmenuKind = { fg = c.cyan },
