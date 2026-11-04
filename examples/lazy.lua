@@ -15,6 +15,7 @@ return {
       catppuccin = { transparent_background = true },
       dracula = { transparent_bg = true },
       default = "theme-tools-mocha",
+      icons = { default = "devicons" }, -- managed here; no separate icon dependency
       picker = { backend = "selection_tools" },
       themes = {
         "theme-tools-mocha",
@@ -28,6 +29,7 @@ return {
     },
     keys = {
       { "<leader>ut", "<cmd>ThemeTools<cr>", desc = "Preview themes" },
+      { "<leader>ui", "<cmd>ThemeToolsIcons<cr>", desc = "Choose icons" },
     },
   },
 }

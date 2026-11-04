@@ -34,7 +34,7 @@ local function layout(opts)
       height = 1,
       style = "minimal",
       border = opts.border,
-      title = opts.apply == false and " Filter groups " or " Filter themes ",
+      title = opts.filter_title or (opts.apply == false and " Filter groups " or " Filter themes "),
       title_pos = "center",
       zindex = 60,
     },
@@ -48,7 +48,7 @@ local function layout(opts)
       border = opts.border,
       title = " " .. (opts.prompt or "Themes") .. " ",
       title_pos = "center",
-      footer = opts.apply == false and " Enter: open  Esc: cancel " or " Enter: apply  Esc: cancel ",
+      footer = opts.footer or (opts.apply == false and " Enter: open  Esc: cancel " or " Enter: apply  Esc: cancel "),
       footer_pos = "center",
       focusable = false,
       zindex = 60,
@@ -125,7 +125,7 @@ local function render(session)
     lines[#lines + 1] = clip("  " .. label, width)
   end
   if #lines == 0 then
-    lines = { "  No matching themes" }
+    lines = { session.opts.empty_text or "  No matching themes" }
   end
   vim.bo[session.list_buf].modifiable = true
   vim.api.nvim_buf_set_lines(session.list_buf, 0, -1, false, lines)
@@ -193,7 +193,7 @@ local function filter(session)
   local previous = session.matches[session.index]
   session.matches, session.index = {}, 1
   for _, theme in ipairs(session.themes) do
-    local text = (theme.name .. " " .. (theme.label or "") .. " " .. theme.colorscheme):lower()
+    local text = (theme.name .. " " .. (theme.label or "") .. " " .. (theme.colorscheme or "")):lower()
     local matches = true
     for word in query:gmatch("%S+") do
       matches = matches and text:find(word, 1, true) ~= nil
@@ -222,7 +222,7 @@ function M.open(themes, current, opts, confirm)
     opts = opts,
     matches = themes,
     index = 1,
-    original = colors.snapshot(),
+    original = opts.preview ~= false and colors.snapshot() or nil,
     previewed = current,
     frames = {},
     group = vim.api.nvim_create_augroup("ThemeToolsPicker", { clear = true }),
@@ -341,6 +341,13 @@ function M.open(themes, current, opts, confirm)
     filter(session)
     local theme = session.matches[session.index]
     if theme then
+      if opts.before_confirm then
+        local accepted, reason = opts.before_confirm(theme)
+        if not accepted then
+          notify(reason)
+          return
+        end
+      end
       if
         opts.apply ~= false
         and (session.viewer or session.previewed ~= theme.name or session.previewed_transparent ~= theme.transparent)

@@ -1,6 +1,6 @@
 # theme-tools.nvim
 
-Theme installation and live colorscheme switching for Neovim 0.11+. An independent,
+Theme and icon management for Neovim 0.11+. An independent,
 personal Mocha theme is included, with Catppuccin and Dracula as managed sources.
 Search themes, inspect a sample window, and apply the one you like.
 
@@ -13,6 +13,7 @@ Search themes, inspect a sample window, and apply the one you like.
 - Managed themes download once at fixed revisions and work offline afterward.
 - Independent Mocha applies generated highlights directly, without loading Catppuccin.
 - Restoring an unchanged saved choice skips writing state; picker UI loads on demand.
+- Managed icon providers, ASCII/hidden display, and a shared icon API are included.
 
 ## Install
 
@@ -147,6 +148,113 @@ host subscriptions unchanged. Failed loads publish only the restored palette.
 `ThemeToolsChanged` continues to mean a saved/confirmed selection. Optional
 integrations can listen for `User ThemeToolsReady` to attach when theme-tools is
 configured after them; its public API is also usable before `setup()`.
+
+## Icons
+
+`:ThemeToolsIcons` opens a searchable display/provider selector with representative
+file and directory samples. Choose `mini`, `devicons` (the default), `ascii`, or
+`none` to hide icons. Enter applies and saves; Escape cancels. Browsing does not
+download providers or change the editor. A failed installation keeps the selector
+open and preserves the previous choice.
+
+```lua
+require("theme_tools").setup({
+  icons = {
+    default = "devicons",
+    providers = { "mini", "devicons", "ascii", "none" }, -- picker/cycling order
+    -- persist inherits the top-level setting; icon state is stored separately.
+    state_file = vim.fn.stdpath("state") .. "/theme-tools/icons.json",
+    install = {
+      root = vim.fn.stdpath("data") .. "/theme-tools/icons",
+      timeout = 30000, -- milliseconds per Git resolve/download operation
+    },
+    mini = {},     -- upstream mini.icons setup options
+    devicons = {}, -- upstream nvim-web-devicons setup options
+    -- picker.backend and picker.selection inherit the theme picker settings.
+    picker = { width = 72, height = 8, border = "rounded" },
+    overrides = {
+      diagnostic = { error = { icon = "!", ascii = "E", hl = "DiagnosticError" } },
+    },
+  },
+})
+```
+
+No separate icon-plugin dependency is needed. Theme Tools downloads the official
+[mini.icons](https://github.com/nvim-mini/mini.icons) and
+[nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) sources into
+immutable commit directories. Setup only restores the provider ID; first lookup
+or selection installs and initializes the chosen provider. ASCII and hidden modes
+need neither Git nor a font with icon glyphs. Installed revisions work offline.
+If a lazy lookup cannot download its provider, it warns once and returns built-in
+fallback icons; selecting the provider or installing again retries.
+
+| Command | Action |
+| --- | --- |
+| `:ThemeToolsIcons [mini\|devicons\|ascii\|none]` | Open the picker, or apply a provider |
+| `:ThemeToolsIconsNext` / `:ThemeToolsIconsPrev` | Cycle providers |
+| `:ThemeToolsIconsInstall [mini\|devicons]` | Download one or both configured sources |
+| `:ThemeToolsIconsUpdate [mini\|devicons]` | Resolve upstream and install a verified new revision |
+
+Updates save their revision only after successful installation, retain previous
+checkouts, and never run in the background. A provider already loaded in Neovim
+keeps its module until restart; the next process uses the updated revision.
+Existing modules loaded by another manager are also reused until restart. Remove
+duplicate provider specs/setup calls when transferring ownership to Theme Tools.
+For a mirror or a pinned revision, `icons.sources.mini` and `.devicons` accept
+`url`, `commit` (full SHA), and `ref` (used by explicit updates). A saved updated
+revision takes precedence over the initial pin.
+
+### Shared icons for plugin authors
+
+```lua
+local icons = require("theme_tools").icons -- also require("theme_tools.icons")
+local icon, highlight, is_fallback = icons.get("file", "/project/init.lua")
+local folder = icons.get("directory", "src")
+local error_icon = icons.get("diagnostic", "error")
+local unsubscribe = icons.on_change("my-plugin-icons", function(display)
+  -- display = { name = "devicons", enabled = true, style = "glyph" }
+  -- Rebuild cached icon strings and redraw your UI here.
+end)
+-- unsubscribe() or icons.off_change("my-plugin-icons") when disabled.
+```
+
+`get(category, name)` always returns `icon, highlight, is_fallback`; `none` returns
+an empty icon, so consumers should add padding only when the icon is nonempty.
+Categories are `file` (full path), `extension` (without a dot), `filetype`,
+`directory`, `os`, `lsp` (completion kind name, e.g. `Function`), `diagnostic`,
+`git`, and `ui`. Missing provider data uses shared semantic defaults.
+Diagnostic names: `error`, `warn`, `info`, `hint`. Git names: `added`, `modified`,
+`removed`, `branch`, `conflict`, `untracked`. UI names: `search`, `close`, `check`,
+`collapsed`, `expanded`, `loading`. Unknown names return a category default with
+`is_fallback = true`; unknown categories are programming errors.
+
+Overrides use `{ icon, hl?, ascii? }` per category/name. ASCII mode uses the optional
+`ascii` override or its built-in text fallback; hidden mode always returns `""`.
+Subscriptions run immediately, then on confirmed provider changes and theme
+changes. IDs replace previous subscriptions; cleanup functions remove only their
+own subscription. Each subscriber receives its own descriptor; callback errors
+warn without blocking others. Subscriptions survive repeated `setup()` calls.
+`User ThemeToolsIconsChanged` carries the same descriptor.
+
+The management API mirrors themes: `icons.list()`, `current()`, `set(name)`,
+`pick()`, `close()`, `next()`, `prev()`, `install([name])`, and `update([name])`.
+Actions return `true` or `nil, error`. Only consumers using this API follow display
+switches; direct calls to upstream icon plugins retain their own behavior.
+
+The maintained selection-tools, completion-tools, lsp-tools, ui-tools and
+notification-tools plugins use this interface when Theme Tools is loaded. Open
+pickers, completion menus, outlines/results, Dashboard actions, bufferline close
+buttons and notifications refresh on a display change. Local icon-disable options
+still apply. Plugins using selection-tools inherit its file-icon switching.
+Structural text such as graph lines, scrollbar tracks and document characters
+retains its meaning independently of icon display.
+
+`icons.catalog()` returns copied `{ category, name, icon, hl }` entries from the
+shared semantic set and current managed provider, for character-insertion UIs.
+ASCII mode returns its text inventory; hidden mode returns an empty inventory.
+Symbol names used by both LSP CompletionItemKind and SymbolKind are supported.
+Additional diagnostic names are `ok`, `debug`, `trace`; UI names also include
+`cancelled`, `lightbulb`, `cycle`, `bullet`, `previous`, and `next`.
 
 ## selection-tools.nvim
 

@@ -4,6 +4,7 @@ CONTENTS                                              *theme-tools*
 
   Configuration  |theme-tools-config|
   API            |theme-tools-api|
+  Icons          |theme-tools-icons|
   Behavior       |theme-tools-behavior|
 
 CONFIGURATION                                         *theme-tools-config*
@@ -175,6 +176,97 @@ or evaluates Lua code.
 Before callbacks can call require("lazy").load({plugins={"theme-name"}}) or a
 theme's setup() if needed. Colorschemes on runtimepath need no adapter. Explicit
 themes can be autoloaded by lazy.nvim even before they appear in discovery.
+
+ICONS                                                 *theme-tools-icons*
+
+:ThemeToolsIcons opens a searchable display/provider picker with samples.
+Choices: mini (mini.icons), devicons (nvim-web-devicons, default), ascii, none.
+Enter applies and saves; Escape cancels. Browsing does not change icons or fetch
+sources. Download failures keep the picker open and preserve the current choice.
+The theme picker backend/selection settings are inherited; icons.picker overrides
+them. No global key mappings are installed.
+>
+  require("theme_tools").setup({
+    icons = {
+      default = "devicons",
+      providers = { "mini", "devicons", "ascii", "none" },
+      state_file = vim.fn.stdpath("state") .. "/theme-tools/icons.json",
+      install = {
+        root = vim.fn.stdpath("data") .. "/theme-tools/icons",
+        timeout = 30000,
+      },
+      mini = {},     -- upstream setup options
+      devicons = {}, -- upstream setup options
+      picker = { width = 72, height = 8, border = "rounded" },
+      overrides = {
+        diagnostic = { error = { icon = "!", ascii = "E", hl = "DiagnosticError" } },
+      },
+    },
+  })
+<
+icons.persist inherits persist. Icon choices are saved separately from themes.
+Setup only restores the provider ID. First get()/set() downloads the selected
+provider from its official Git repository at a fixed SHA. Installed checkouts
+are reused offline; ascii/none need no download. Lazy lookup failures warn once
+and return built-in glyphs. set()/install() can retry. No separate provider specs
+are needed. Remove duplicate specs/setup when transferring ownership here.
+
+:ThemeToolsIcons mini                 Apply a provider by ID
+:ThemeToolsIconsNext / Prev           Cycle in configured order (full prefix)
+:ThemeToolsIconsInstall [provider]    Install one or all configured providers
+:ThemeToolsIconsUpdate [provider]     Resolve upstream and install a new revision
+
+Updates verify complete checkouts before saving a revision and keep old checkouts.
+Loaded modules activate updates on restart. No background updates run. Existing
+upstream modules loaded elsewhere are reused until restart. icons.sources.mini
+and .devicons accept url/commit/ref for mirrors/pins; commit is a full SHA, ref
+is used by explicit updates. A saved update takes precedence over the initial pin.
+Timeout bounds each Git resolution or download operation in milliseconds.
+>
+  local icons = require("theme_tools").icons -- or require("theme_tools.icons")
+  local icon, hl, is_fallback = icons.get("file", "/project/init.lua")
+  local cleanup = icons.on_change("my-plugin", function(display)
+    -- display.name, display.enabled, display.style (glyph/ascii/none)
+    -- Rebuild cached icons and redraw your UI.
+  end)
+  icons.off_change("my-plugin") -- or cleanup()
+  icons.list()                  -- copied descriptors in configured order
+  icons.current()               -- selected provider ID
+  icons.set("ascii")            -- apply and save
+  icons.pick()                  -- display/provider selector
+  icons.close()                 -- cancel selector
+  icons.next(); icons.prev()    -- cycle
+  icons.install("mini")         -- ensure pinned/saved revision exists
+  icons.update("mini")          -- resolve/download and save a new revision
+<
+get() always returns a string icon, highlight group and fallback boolean. none
+returns an empty string; add padding only for nonempty icons. Supported categories:
+file (full path), extension (no dot), filetype, directory, os, lsp (completion kind
+name, e.g. Function), diagnostic, git, ui. Missing provider data uses shared
+semantic defaults. Unknown names return the category default with fallback=true;
+unknown categories raise an error.
+Diagnostic names: error/warn/info/hint.
+Git names: added/modified/removed/branch/conflict/untracked.
+UI names: search/close/check/collapsed/expanded/loading.
+Overrides are tables with icon, optional hl and optional ascii. ASCII mode uses
+ascii overrides or built-in text; none always hides icons.
+
+on_change runs immediately and after display/theme changes, survives setup(),
+replaces by ID, isolates descriptors, and catches callback errors. Cleanup only
+removes its own subscription. User ThemeToolsIconsChanged carries the descriptor.
+Only API consumers follow switches; direct upstream calls keep their own behavior.
+Actions return true or nil,error. Saving failures warn and retain the active choice.
+
+The maintained selection-tools, completion-tools, lsp-tools, ui-tools and
+notification-tools consumers follow this interface and redraw open views on a
+switch. Plugins using selection-tools inherit its file-icon switching. Structural
+text (graph lines, scrollbar tracks, document characters) is independent of icon
+display. Local icon-disable settings continue to apply.
+icons.catalog() returns copied {category,name,icon,hl} entries from the semantic
+set/current managed provider, for character insertion. ASCII returns text entries;
+none returns an empty inventory. Both LSP CompletionItemKind and SymbolKind names
+are supported. Extra diagnostic names: ok/debug/trace. Extra UI names:
+cancelled/lightbulb/cycle/bullet/previous/next.
 
 API                                                   *theme-tools-api*
 >

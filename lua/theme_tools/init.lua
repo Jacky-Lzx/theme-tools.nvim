@@ -1,4 +1,5 @@
 local M = {}
+M.icons = require("theme_tools.icons")
 local colors = require("theme_tools.colors")
 local state = require("theme_tools.state")
 local defaults = {
@@ -205,6 +206,7 @@ function M._preview_options()
 end
 
 function M.close()
+  M.icons.close()
   local groups = package.loaded["theme_tools.groups"]
   if groups then
     groups.close()
@@ -269,6 +271,7 @@ function M.prev()
 end
 
 function M.commands()
+  M.icons.commands()
   local function run(callback)
     local ok, err = callback()
     if not ok and err then
@@ -344,6 +347,10 @@ function M.setup(opts)
     M.register(theme)
   end
   M.commands()
+  M.icons.setup(vim.tbl_deep_extend("force", {
+    persist = config.persist,
+    picker = { backend = config.picker.backend, selection = config.picker.selection },
+  }, opts.icons or {}))
   local group = vim.api.nvim_create_augroup("theme_tools_sources", { clear = true })
   for name, patterns in pairs(sources) do
     if config[name] ~= false then

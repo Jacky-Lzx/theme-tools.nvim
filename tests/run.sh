@@ -8,6 +8,10 @@ export NVIM_LOG_FILE="$test_root/nvim.log" PYTHONDONTWRITEBYTECODE=1
 export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/core.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/install.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icons.lua
+if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-tools.nvim ] && [ -d ../notification-tools.nvim ] && [ -d ../selection-tools.nvim ]; then
+  "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/consumers.lua
+fi
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/integrations.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/mocha.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/palette.lua
@@ -22,4 +26,8 @@ python3 tests/selection_ui.py
 python3 tests/groups_ui.py
 python3 tests/window_ui.py
 python3 tests/tui.py
+python3 tests/icons_tui.py
+if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-tools.nvim ] && [ -d ../notification-tools.nvim ]; then
+  python3 tests/consumers_tui.py
+fi
 stylua --check lua plugin colors scripts tests examples
