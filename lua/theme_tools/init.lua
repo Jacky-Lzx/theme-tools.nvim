@@ -7,6 +7,7 @@ local defaults = {
   state_file = vim.fn.stdpath("state") .. "/theme-tools/selection.json",
   catppuccin = {},
   dracula = {},
+  palette = {},
   install = { root = vim.fn.stdpath("data") .. "/theme-tools/themes", timeout = 30000 },
   picker = {
     backend = "builtin",
@@ -37,6 +38,25 @@ local backgrounds = {
 
 local function notify(err)
   vim.notify(tostring(err), vim.log.levels.WARN, { title = "theme-tools" })
+end
+
+---Return a copied semantic palette for the current applied colorscheme.
+function M.palette()
+  return require("theme_tools.palette").get()
+end
+
+---Subscribe by stable ID; runs immediately and returns an unsubscribe function.
+function M.on_change(id, callback)
+  return require("theme_tools.palette").on_change(id, callback)
+end
+
+function M.off_change(id)
+  require("theme_tools.palette").off_change(id)
+end
+
+---Re-read manually changed highlights and notify palette subscribers.
+function M.refresh_palette()
+  require("theme_tools.palette").refresh()
 end
 
 function M.install(source)
@@ -155,6 +175,7 @@ function M._preview_options()
   return {
     catppuccin = config.catppuccin,
     dracula = config.dracula,
+    palette = config.palette,
     install = config.install,
     after = config.picker.preview_after,
     plugins = plugins,
@@ -289,6 +310,7 @@ function M.setup(opts)
   assert(opts.themes == nil or vim.islist(opts.themes), "themes must be a list")
   local themes = vim.tbl_map(normalize, opts.themes or {})
   M.close()
+  require("theme_tools.palette").setup(new.palette)
   config, registered, selected = new, {}, nil
   managed_ready = {}
   for _, theme in ipairs(themes) do
@@ -333,7 +355,10 @@ function M.setup(opts)
     if not ok then
       notify(err)
     end
+  else
+    require("theme_tools.palette").refresh()
   end
+  vim.api.nvim_exec_autocmds("User", { pattern = "ThemeToolsReady", modeline = false })
 end
 
 return M

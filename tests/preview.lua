@@ -15,6 +15,10 @@ require("theme_tools").setup({
   },
 })
 local original = colors.snapshot()
+local palettes = 0
+require("theme_tools").on_change("preview-test", function()
+  palettes = palettes + 1
+end)
 local viewer = require("theme_tools.preview").new()
 local frame, failure
 viewer:show({ name = "day", colorscheme = "morning", background = "light" }, function(result, err)
@@ -29,6 +33,7 @@ assert(
 assert(not failure, failure)
 assert(frame.background == "light" and frame.highlights.PreviewOnly.fg == 0x123abc)
 assert(not vim.g.preview_after_called, "worker executed configuration in host")
+assert(palettes == 1, "isolated preview notified host subscribers")
 assert(vim.deep_equal(original, colors.snapshot()), "isolated preview changed host colors")
 local calls, latest = 0
 viewer:show({

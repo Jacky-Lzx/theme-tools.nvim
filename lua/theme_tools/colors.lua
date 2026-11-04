@@ -15,7 +15,7 @@ function M.snapshot()
   }
 end
 
-function M.restore(snapshot)
+local function restore(snapshot)
   -- Reload first so ColorScheme integrations return to the original theme.
   -- Changing background can automatically reload g:colors_name. A failed theme
   -- may have left that global pointing at itself.
@@ -44,8 +44,20 @@ function M.restore(snapshot)
   vim.g.terminal_color_foreground = snapshot.terminal.foreground
 end
 
+function M.restore(snapshot)
+  local palette = require("theme_tools.palette")
+  palette.begin()
+  local ok, err = pcall(restore, snapshot)
+  palette.finish()
+  if not ok then
+    error(err, 0)
+  end
+end
+
 function M.apply(theme)
   local snapshot = M.snapshot()
+  local palette = require("theme_tools.palette")
+  palette.begin()
   local ok, err = pcall(function()
     if theme.before then
       theme.before(theme)
@@ -61,8 +73,10 @@ function M.apply(theme)
   end)
   if not ok then
     M.restore(snapshot)
+    palette.finish()
     return nil, tostring(err)
   end
+  palette.finish()
   return true
 end
 

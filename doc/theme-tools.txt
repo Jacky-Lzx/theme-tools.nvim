@@ -167,6 +167,10 @@ API                                                   *theme-tools-api*
   themes.current()                  -- matching registered ID, or nil
   themes.list()                     -- copied list in picker/cycling order
   themes.register({ name = "night", colorscheme = "habamax" })
+  themes.palette()                  -- copied current semantic colors
+  themes.on_change("plugin-id", fn)  -- immediate subscription; returns cleanup
+  themes.off_change("plugin-id")    -- remove a subscription
+  themes.refresh_palette()          -- refresh after manual highlight edits
 <
 install(), pick(), set(), next() and prev() return true on success or nil, error
 on failure.
@@ -189,6 +193,51 @@ live mode they also run during preview and restoration. ThemeToolsChanged is emi
 when committing a selection (including startup restore/default), never merely
 for previews or cancellation. Use an adaptive statusline theme if you want it
 to follow colorscheme changes rather than holding a fixed theme palette.
+
+SHARED PALETTE                                        *theme-tools-palette*
+
+palette() returns {name, background, transparent, palette, ui, diagnostic, git}.
+All colors are #rrggbb strings. Only ui background fields may be "NONE".
+The opaque palette.bg is separate from the actual ui.bg used for transparency.
+
+  palette: bg, fg, red, orange, yellow, green, cyan, blue, purple, pink
+  ui: fg, bg, float_fg, float_bg, muted, subtle, border, accent,
+      selection_fg, selection_bg, search_fg, search_bg, cursorline_bg
+  diagnostic: error, warn, info, hint, ok
+  git: add, change, delete
+>
+  local themes = require("theme_tools")
+  local stop = themes.on_change("my-plugin", function(c)
+    vim.api.nvim_set_hl(0, "MyPluginBorder", {
+      fg = c.ui.border, bg = c.ui.float_bg,
+    })
+  end)
+  -- stop() or themes.off_change("my-plugin") to unsubscribe.
+<
+Registration invokes the callback immediately. Later managed theme changes,
+previews and restoration invoke it after all synchronous colorscheme overrides.
+Direct :colorscheme calls notify on the next scheduled turn; bursts coalesce.
+Each caller receives a copy. Named registrations replace older callbacks without
+losing subscriptions across setup(). Errors warn without blocking other plugins.
+An old cleanup function cannot unsubscribe a newer callback with the same ID.
+Callbacks must not switch themes recursively. Register during plugin setup and
+invalidate cached colors here, rather than resolving palettes during redraws.
+
+Mocha, loaded Catppuccin and loaded Dracula use adapters. Other themes derive
+colors from standard highlights with complete fallbacks. No inactive provider is
+loaded. Standard highlight overrides affect semantic roles. For manual highlight
+changes outside ColorScheme, call refresh_palette(). Palette resolution is lazy.
+
+setup({palette={overrides=..., themes={...}}}) accepts a global partial override
+followed by an override keyed by applied colorscheme name (not registered alias).
+Each override is a partial table or function(c) returning one. Invalid values
+warn and retain the previous valid values. Theme metadata is read-only;
+transparent is derived from ui.bg. Overrides affect this API, not the original
+colorscheme highlights. Isolated previews never notify host subscribers.
+
+User ThemeToolsReady fires after setup for optional, earlier-loaded integrations.
+The API can also be used before setup. ThemeToolsChanged retains its existing
+selection/persistence semantics and is not the palette notification mechanism.
 
 BEHAVIOR                                              *theme-tools-behavior*
 

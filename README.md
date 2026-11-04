@@ -80,7 +80,75 @@ a temporary checkout, verify the pinned revision, then publish the complete
 installation. Failed downloads leave the current palette intact and clean up
 their temporary files. The default download timeout is 30 seconds in total.
 
-### selection-tools.nvim
+### Shared colors for plugin authors
+
+`require("theme_tools").palette()` returns a copied snapshot of the applied theme.
+Plugin code uses semantic roles rather than importing Catppuccin or Dracula:
+
+```lua
+local themes = require("theme_tools")
+local unsubscribe = themes.on_change("my-plugin", function(c)
+  vim.api.nvim_set_hl(0, "MyPluginBorder", { fg = c.ui.border, bg = c.ui.float_bg })
+  vim.api.nvim_set_hl(0, "MyPluginError", { fg = c.diagnostic.error })
+end)
+-- unsubscribe() or themes.off_change("my-plugin") when the integration is disabled.
+```
+
+Subscriptions run immediately, then after each applied colorscheme or restoration.
+The same ID replaces its previous callback; an old cleanup cannot remove the new
+subscription. Each callback receives its own copy. Errors warn without blocking
+other subscribers. Register once during setup, never during drawing. A plugin can
+keep its existing standard-highlight behavior when theme-tools is unavailable.
+
+| Field | Meaning |
+| --- | --- |
+| `name`, `background`, `transparent` | Applied colorscheme name, `dark`/`light`, and whether `ui.bg` is `NONE` |
+| `palette` | Opaque `bg`, `fg`, `red`, `orange`, `yellow`, `green`, `cyan`, `blue`, `purple`, `pink` |
+| `ui` | `fg`, `bg`, `float_fg`, `float_bg`, `muted`, `subtle`, `border`, `accent`, `selection_fg`, `selection_bg`, `search_fg`, `search_bg`, `cursorline_bg` |
+| `diagnostic` | `error`, `warn`, `info`, `hint`, `ok` |
+| `git` | `add`, `change`, `delete` |
+
+Colors are `#rrggbb` strings, accepted directly by `nvim_set_hl`. UI backgrounds
+may be `"NONE"`; `palette.bg` always supplies an opaque theme base for blending.
+Mocha, Catppuccin and Dracula have adapters. Other themes use standard Neovim
+highlights and complete fallback values. Adapters never initialize an inactive
+provider. Semantic roles reflect the final standard highlights, including user
+`ColorScheme` overrides. Palette resolution stays lazy until a consumer needs it.
+
+Global overrides apply before per-colorscheme overrides:
+
+```lua
+require("theme_tools").setup({
+  palette = {
+    overrides = { ui = { accent = "#89b4fa" } },
+    themes = {
+      ["catppuccin-latte"] = function(c)
+        return { ui = { border = c.palette.purple } }
+      end,
+    },
+  },
+})
+```
+
+Overrides are partial tables or functions returning partial tables. Invalid
+changes warn and leave the previous valid values in use. Theme name/background
+are read-only; `transparent` follows `ui.bg`. Overrides affect consumers, not the
+colorscheme's original highlights. Calling `setup()` keeps subscriptions.
+
+Managed switching is synchronous. External `:colorscheme` notifications run on
+the next scheduled turn, after all synchronous `ColorScheme` callbacks; repeated
+external changes coalesce to the final theme. `palette()` can read that final
+palette before the notification runs. For manual highlight edits outside a
+colorscheme callback, call `themes.refresh_palette()` afterwards. Callbacks should
+apply colors or invalidate their caches, and must not switch themes recursively.
+
+Live preview and cancellation notify consumers; isolated window previews leave
+host subscriptions unchanged. Failed loads publish only the restored palette.
+`ThemeToolsChanged` continues to mean a saved/confirmed selection. Optional
+integrations can listen for `User ThemeToolsReady` to attach when theme-tools is
+configured after them; its public API is also usable before `setup()`.
+
+## selection-tools.nvim
 
 Use your existing selection-tools layout, matching and navigation for themes:
 

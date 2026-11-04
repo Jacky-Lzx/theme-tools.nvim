@@ -25,6 +25,7 @@ function M.setup(options, parent, id)
     themes = {},
     catppuccin = options.catppuccin,
     dracula = options.dracula,
+    palette = options.palette,
     install = options.install,
   })
 end
@@ -36,6 +37,7 @@ local function render(request)
     assert(applied, err)
     if after then
       after(theme)
+      require("theme_tools.palette").refresh()
     end
     local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
     local canvas = normal.bg

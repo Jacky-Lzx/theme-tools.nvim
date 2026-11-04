@@ -10,6 +10,7 @@ export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/install.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/integrations.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/mocha.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/palette.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l scripts/build_mocha.lua --check
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
