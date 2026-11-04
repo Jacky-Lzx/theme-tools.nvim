@@ -70,9 +70,9 @@ function M.resolve(base)
       ok = h("DiagnosticOk", "fg") or p.green,
     },
     git = {
-      add = h("Added", "fg") or p.green,
+      add = h("diffAdded", "fg") or h("Added", "fg") or p.green,
       change = h("Changed", "fg") or p.yellow,
-      delete = h("Removed", "fg") or p.red,
+      delete = h("diffRemoved", "fg") or h("Removed", "fg") or p.red,
     },
   }
 end

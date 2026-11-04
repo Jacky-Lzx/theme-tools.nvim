@@ -11,7 +11,7 @@ local opts = {
   catppuccin = false,
   dracula = false,
   default = "theme-tools-mocha",
-  themes = { "theme-tools-mocha", "morning", "desert" },
+  themes = { "theme-tools-mocha", "theme-tools-dracula", "morning", "desert" },
 }
 themes.setup(opts)
 assert(not package.loaded["theme_tools.mocha.palette"], "unused palette must stay lazy")
@@ -21,6 +21,12 @@ assert(c.ui.bg == "NONE" and c.palette.bg == "#1e1e2e")
 assert(c.palette.blue == "#89b4fa" and c.palette.purple == "#cba6f7")
 assert(c.ui.selection_bg == "#6c7086" and c.diagnostic.error == "#f38ba8")
 assert(not package.loaded.catppuccin and not package.loaded.dracula)
+-- Builtin Added/Removed defaults must not mask each theme's explicit diff colors.
+assert(c.git.add == "#a6e3a1" and c.git.delete == "#f38ba8")
+assert(themes.set("theme-tools-dracula"))
+local dracula = themes.palette()
+assert(dracula.git.add == "#50fa7b" and dracula.git.delete == "#ff5555")
+assert(themes.set("theme-tools-mocha"))
 c.ui.accent = "#000000"
 assert(themes.palette().ui.accent ~= "#000000", "palette() leaked mutable state")
 
