@@ -11,11 +11,13 @@ export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/integrations.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/mocha.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/palette.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/transparency.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l scripts/build_mocha.lua --check
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
 python3 tests/ui.py
 python3 tests/palette_ui.py
+python3 tests/transparency_ui.py
 python3 tests/selection_ui.py
 python3 tests/groups_ui.py
 python3 tests/window_ui.py

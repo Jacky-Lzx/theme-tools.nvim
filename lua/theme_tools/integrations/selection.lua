@@ -1,5 +1,6 @@
 local M = {}
 local colors = require("theme_tools.colors")
+local transparency = require("theme_tools.transparency")
 local active
 
 function M.close()
@@ -26,12 +27,33 @@ function M.open(themes, current, opts, confirm)
       items[#items + 1] = theme
     end
   end
-  local session = { original = colors.snapshot(), previewed = current }
+  local session = { original = colors.snapshot(), previewed = current, frames = {} }
+  for _, theme in ipairs(items) do
+    if theme.name == current then
+      session.previewed_transparent = theme.transparent
+      session.frames[theme.name] =
+        { transparent = require("theme_tools.palettes.fallback").highlight("Normal", "bg") == nil }
+    end
+  end
   local window_preview = opts.preview_mode ~= "live" and opts.apply ~= false
   if window_preview then
     session.viewer = require("theme_tools.preview").new()
   end
   active = session
+  local function status(picker, theme, frame)
+    if
+      theme
+      and opts.apply ~= false
+      and transparency.key(opts)
+      and picker.frame_win
+      and vim.api.nvim_win_is_valid(picker.frame_win)
+    then
+      picker.opts.prompt = transparency.title(opts.prompt or "Themes", theme, frame or session.frames[theme.name], opts)
+      vim.api.nvim_win_set_config(picker.frame_win, {
+        title = " " .. picker.opts.prompt .. " ",
+      })
+    end
+  end
   local function preview(theme)
     if active ~= session then
       return nil, "Theme picker is closed"
@@ -43,12 +65,15 @@ function M.open(themes, current, opts, confirm)
       end
       return true
     end
-    if session.previewed == theme.name then
+    if session.previewed == theme.name and session.previewed_transparent == theme.transparent then
       return true
     end
     local ok, err = colors.apply(theme)
     if ok then
       session.previewed = theme.name
+      session.previewed_transparent = theme.transparent
+      session.frames[theme.name] =
+        { transparent = require("theme_tools.palettes.fallback").highlight("Normal", "bg") == nil }
     end
     return ok, err
   end
@@ -61,6 +86,7 @@ function M.open(themes, current, opts, confirm)
     item_icons = false,
     keys = {
       theme_groups = opts.on_group and { "<C-g>" } or {},
+      theme_transparency = opts.apply ~= false and transparency.key(opts) and { transparency.key(opts) } or {},
       split = {},
       vsplit = {},
       tab = {},
@@ -71,7 +97,27 @@ function M.open(themes, current, opts, confirm)
       system_open = {},
       details = {},
     },
-    actions = { theme_groups = opts.on_group or function() end },
+    actions = {
+      theme_groups = opts.on_group or function() end,
+      theme_transparency = function(picker)
+        picker:set_query(table.concat(vim.api.nvim_buf_get_lines(picker.input_buf, 0, -1, false), " "))
+        local theme, index = picker:current()
+        if not theme then
+          return
+        end
+        transparency.toggle(theme, session.frames[theme.name])
+        if window_preview and picker.preview and picker.preview_win then
+          -- A new item identity invalidates the existing sample without changing query/selection.
+          picker.preview:update(vim.tbl_extend("force", {}, theme), index)
+        elseif not window_preview and opts.preview ~= false then
+          local ok, err = preview(theme)
+          if not ok then
+            vim.notify(err, vim.log.levels.WARN, { title = "theme-tools" })
+          end
+        end
+        status(picker, theme)
+      end,
+    },
     format_item = function(theme)
       local label = theme.label or theme.name
       if label ~= theme.name then
@@ -84,10 +130,12 @@ function M.open(themes, current, opts, confirm)
     end,
     on_change = function(theme, _, picker)
       session.picker = picker
+      status(picker, theme)
       if window_preview or opts.preview == false then
         return
       end
       local ok, err = preview(theme)
+      status(picker, theme)
       if not ok and session.failed ~= (theme and theme.name) then
         session.failed = theme and theme.name
         vim.notify(err, vim.log.levels.WARN, { title = "theme-tools" })
@@ -127,6 +175,10 @@ function M.open(themes, current, opts, confirm)
     spec.previewer = function(ctx)
       session.viewer:show(ctx.item, function(frame, err)
         if not ctx.is_cancelled() then
+          if frame then
+            session.frames[ctx.item.name] = frame
+            status(ctx.picker, ctx.item, frame)
+          end
           ctx.paint(function(buf, win)
             require("theme_tools.sample").draw(buf, win, ctx.item, frame, err)
           end, { title = ctx.item.label or ctx.item.name })

@@ -25,6 +25,7 @@ CONFIGURATION                                         *theme-tools-config*
         label = "Daylight",         -- optional picker label
         colorscheme = "morning",    -- defaults to name
         background = "light",       -- optional: light or dark
+        transparent = false,        -- optional: otherwise use native settings
         before = function(theme)    -- optional: runs before every application
           -- Configure or load a theme plugin here if needed.
         end,
@@ -38,6 +39,7 @@ CONFIGURATION                                         *theme-tools-config*
       backend = "builtin", width = 52, height = 12, border = "rounded",
       group_by_background = true,
       preview_mode = "window", -- "live" restores editor-wide previews
+      transparency_key = "<C-t>", -- false disables the picker toggle
     },
   })
 <
@@ -125,6 +127,25 @@ No preview code or child process is loaded at startup.
 Ctrl-D/Ctrl-U scroll the builtin pane; selection-tools inherits its preview keys.
 On very small terminals the sample is hidden. Transparent themes use a solid
 preview canvas; actual application retains their configured transparency.
+Ctrl-T toggles transparency for the selected theme in either picker. The title
+and sample report on/off (or default until the native setting is resolved). The
+sample keeps a solid canvas; its label reports the actual mode to be applied.
+Window mode leaves the host unchanged. Live mode updates the editor and shared
+palette subscribers immediately. Enter applies and saves only the selected
+theme's preference; Escape cancels. Group/category menus have no transparency key.
+
+Preferences are stored per registered theme ID in the existing selection.json
+file and restore on startup and later Theme Tools switches. Old name-only state
+files retain native settings. A theme's optional transparent=true/false supplies
+a default; saved choices take precedence. Explicit choices are applied after the
+colorscheme and synchronous ColorScheme overrides, including editor, float,
+gutter and unaccented bar backgrounds. Selection/search and mode accents remain.
+Unknown themes use standard backgrounds with an opaque fallback when needed.
+
+picker.transparency_key accepts a mapping string (default <C-t>) or false.
+persist=false keeps confirmed choices only until the next setup. Browsing and
+cancelled edits never write preferences. No theme-provider options are mutated.
+
 Set picker.preview_mode="live" to restore editor-wide previews instead.
 
 Host ColorScheme autocommands do not run in the worker. Use an optional
@@ -148,7 +169,8 @@ and restores an available saved ID, falling back to default. With neither, the
 current colorscheme stays active. persist=false disables both reading and writing
 state. Corrupt state is ignored with a warning. Unavailable saved IDs are ignored.
 If a saved theme fails to load, its error is reported and the prior palette is
-restored. State stores only the theme ID; it never stores or evaluates Lua code.
+restored. State stores the theme ID and per-theme transparency choices; it never stores
+or evaluates Lua code.
 
 Before callbacks can call require("lazy").load({plugins={"theme-name"}}) or a
 theme's setup() if needed. Colorschemes on runtimepath need no adapter. Explicit
@@ -184,7 +206,7 @@ After a confirmed selection or successful direct application, this event fires:
   vim.api.nvim_create_autocmd("User", {
     pattern = "ThemeToolsChanged",
     callback = function(event)
-      -- event.data: {name, colorscheme, background}
+      -- event.data: {name, colorscheme, background, transparent}
     end,
   })
 <

@@ -37,6 +37,7 @@ local function render(request)
     assert(applied, err)
     if after then
       after(theme)
+      require("theme_tools.transparency").apply(theme.transparent)
       require("theme_tools.palette").refresh()
     end
     local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })

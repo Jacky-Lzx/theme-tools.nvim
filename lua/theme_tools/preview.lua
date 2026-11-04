@@ -32,7 +32,13 @@ end
 
 function Viewer:show(theme, draw)
   self.draw = draw
-  local key = theme.name .. "\0" .. theme.colorscheme .. "\0" .. (theme.background or "")
+  local key = theme.name
+    .. "\0"
+    .. theme.colorscheme
+    .. "\0"
+    .. (theme.background or "")
+    .. "\0"
+    .. tostring(theme.transparent)
   if self.key == key and self.pending then
     return
   end

@@ -304,11 +304,59 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
             term.lua(
                 "dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_bars.lua')"
             )
+        # Toggle the current theme through the configured selector, then restart.
+        term.lua("""
+          local plugin=require('lazy.core.config').plugins['theme-tools.nvim']
+          local opts=vim.deepcopy(require('lazy.core.plugin').values(plugin,'opts',false))
+          opts.persist=true
+          opts.picker.preview_mode='window'
+          opts.picker.group_by_background=false
+          require('theme_tools').setup(opts)
+        """)
+        term.keys(b" ut")
+        wait_preview(term, "theme-tools-mocha")
+        term.keys(b"\x14")
+        assert term.lua("return vim.wait(5000,function() return vim.b[theme_sample_buf].theme_tools_preview_transparent==false end)")
+        assert term.lua("return require('theme_tools').palette().transparent"), "window toggle changed the host"
+        term.keys(b"\x14\x14\r")
+        assert not term.lua("return require('theme_tools').palette().transparent")
+        check_shared_colors(term)
+        assert json.loads(path.read_text())["transparency"]["theme-tools-mocha"] is False
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )
     finally:
         term.close()
+    term = Terminal(config / "init.lua", directory / "opaque.sock", before)
+    try:
+        check_startup(term)
+        assert not term.lua("return require('theme_tools').palette().transparent")
+        assert term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg") == 0x1E1E2E
+        check_shared_colors(term)
+        term.keys(b" ut")
+        wait_preview(term, "theme-tools-mocha")
+        term.keys(b"\x14\r")
+        assert term.lua("return require('theme_tools').palette().transparent")
+        assert json.loads(path.read_text())["transparency"]["theme-tools-mocha"] is True
+        # Explicit transparency takes precedence over Latte's configured solid override.
+        assert term.lua("return require('theme_tools').set('catppuccin-latte')")
+        term.keys(b" ut")
+        wait_preview(term, "catppuccin-latte")
+        term.keys(b"\x14\r")
+        assert term.lua("return require('theme_tools').palette().transparent")
+        check_shared_colors(term)
+    finally:
+        term.close()
+    term = Terminal(config / "init.lua", directory / "transparent.sock", before)
+    try:
+        check_startup(term)
+        assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
+        assert term.lua("return require('theme_tools').palette().transparent")
+        assert term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg") is None
+        check_shared_colors(term)
+        assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
+    finally:
+        term.close()
 print(
-    "configured PTY: isolated theme samples, custom highlights, bar palettes, scrolling, confirm, cancel and restart passed"
+    "configured PTY: isolated samples, semantic colors, live keys, transparency toggle, confirm, cancel and restart passed"
 )

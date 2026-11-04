@@ -1,6 +1,6 @@
 local M = {}
 
-function M.highlight(name, field)
+function M.definition(name)
   -- link=false can resolve through the active window's winhighlight namespace.
   -- Read raw global definitions and follow their links without window remapping.
   local seen = {}
@@ -8,13 +8,17 @@ function M.highlight(name, field)
     seen[name] = true
     local hl = vim.api.nvim_get_hl(0, { name = name, link = true, create = false })
     if not hl.link then
-      local value = hl[field]
-      if type(value) == "number" and value >= 0 then
-        return string.format("#%06x", value)
-      end
-      return
+      return hl
     end
     name = hl.link
+  end
+  return {}
+end
+
+function M.highlight(name, field)
+  local value = M.definition(name)[field]
+  if type(value) == "number" and value >= 0 then
+    return string.format("#%06x", value)
   end
 end
 

@@ -30,21 +30,11 @@ end
 
 local function resolve()
   local name = vim.g.colors_name or "default"
-  local adapter = name == "theme-tools-mocha" and "mocha"
-    or name:match("^catppuccin") and "catppuccin"
-    or name:match("^dracula") and "dracula"
-  local base
-  if adapter then
-    local ok, result = pcall(function()
-      return require("theme_tools.palettes." .. adapter)()
-    end)
-    if ok then
-      base = result
-    else
-      warn(result)
-    end
+  local ok, value = pcall(require("theme_tools.palettes").resolve)
+  if not ok then
+    warn(value)
+    value = require("theme_tools.palettes.fallback").resolve()
   end
-  local value = require("theme_tools.palettes.fallback").resolve(base)
   for _, override in ipairs({ options.overrides or {}, (options.themes or {})[name] or {} }) do
     local ok, result = pcall(function()
       local changes = type(override) == "function" and override(vim.deepcopy(value)) or override

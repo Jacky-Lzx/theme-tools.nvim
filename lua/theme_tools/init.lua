@@ -16,12 +16,14 @@ local defaults = {
     border = "rounded",
     group_by_background = true,
     preview_mode = "window",
+    transparency_key = "<C-t>",
   },
 }
 local config = vim.deepcopy(defaults)
 local registered = {}
 local selected
 local managed_ready = {}
+local transparency = {}
 local sources = {
   catppuccin = { "catppuccin", "catppuccin-*" },
   dracula = { "dracula", "dracula-soft" },
@@ -89,6 +91,7 @@ local function normalize(theme)
   assert(theme.label == nil or type(theme.label) == "string", "label must be a string")
   assert(theme.background == nil or theme.background == "light" or theme.background == "dark", "invalid background")
   assert(theme.before == nil or type(theme.before) == "function", "before must be a function")
+  assert(theme.transparent == nil or type(theme.transparent) == "boolean", "transparent must be a boolean")
   return theme
 end
 
@@ -118,6 +121,11 @@ function M.list()
       end
     end
   end
+  for _, theme in ipairs(themes) do
+    if transparency[theme.name] ~= nil then
+      theme.transparent = transparency[theme.name]
+    end
+  end
   return themes
 end
 
@@ -143,6 +151,14 @@ function M.current()
 end
 
 local function commit(theme)
+  if config.persist then
+    -- Preserve preferences confirmed by another editor since this setup.
+    local _, _, latest = state.read(config.state_file)
+    transparency = vim.tbl_extend("force", transparency, latest or {})
+  end
+  if theme.transparent ~= nil then
+    transparency[theme.name] = theme.transparent
+  end
   selected = {
     name = theme.name,
     colorscheme = theme.colorscheme,
@@ -150,7 +166,7 @@ local function commit(theme)
     background = vim.o.background,
   }
   if config.persist then
-    local ok, err = state.write(config.state_file, theme.name)
+    local ok, err = state.write(config.state_file, theme.name, transparency)
     if not ok then
       notify("Theme applied, but saving failed: " .. err)
     end
@@ -158,7 +174,12 @@ local function commit(theme)
   vim.api.nvim_exec_autocmds("User", {
     pattern = "ThemeToolsChanged",
     modeline = false,
-    data = { name = theme.name, colorscheme = theme.colorscheme, background = vim.o.background },
+    data = {
+      name = theme.name,
+      colorscheme = theme.colorscheme,
+      background = vim.o.background,
+      transparent = require("theme_tools.palettes.fallback").highlight("Normal", "bg") == nil,
+    },
   })
 end
 
@@ -300,6 +321,11 @@ function M.setup(opts)
   assert(type(new.picker.group_by_background) == "boolean", "picker.group_by_background must be boolean")
   assert(vim.tbl_contains({ "window", "live" }, new.picker.preview_mode), "invalid picker.preview_mode")
   assert(
+    new.picker.transparency_key == false
+      or type(new.picker.transparency_key) == "string" and new.picker.transparency_key ~= "",
+    "invalid picker.transparency_key"
+  )
+  assert(
     new.picker.preview_after == nil or type(new.picker.preview_after) == "function",
     "preview_after must be a function"
   )
@@ -313,6 +339,7 @@ function M.setup(opts)
   require("theme_tools.palette").setup(new.palette)
   config, registered, selected = new, {}, nil
   managed_ready = {}
+  transparency = {}
   for _, theme in ipairs(themes) do
     M.register(theme)
   end
@@ -338,7 +365,8 @@ function M.setup(opts)
   end
   local name, err
   if config.persist then
-    name, err = state.read(config.state_file)
+    name, err, transparency = state.read(config.state_file)
+    transparency = transparency or {}
     if err then
       notify(err)
     end

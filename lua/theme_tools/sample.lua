@@ -88,6 +88,10 @@ function M.draw(buf, win, theme, frame, err)
   end
   local text = vim.deepcopy(lines)
   text[1] = "  " .. (theme.label or theme.name) .. (frame and (" · " .. frame.background) or "")
+  if frame then
+    text[1] = text[1] .. " · transparent " .. (frame.transparent and "on" or "off")
+    text[32] = "  Transparency: " .. (frame.transparent and "on" or "off") .. " · solid preview canvas."
+  end
   if err then
     text = {
       text[1],
@@ -173,6 +177,7 @@ function M.draw(buf, win, theme, frame, err)
   end
   vim.b[buf].theme_tools_preview = theme.name
   vim.b[buf].theme_tools_preview_error = err
+  vim.b[buf].theme_tools_preview_transparent = frame and frame.transparent
 end
 
 return M

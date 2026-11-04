@@ -181,6 +181,7 @@ The selection-tools backend uses its configured matching and key bindings.
 | Escape / Ctrl-C | Cancel and restore |
 | Ctrl-G | Open the theme category menu; Enter opens a category |
 | Ctrl-D / Ctrl-U | Scroll the theme sample (selection-tools inherits its own preview keys) |
+| Ctrl-T | Toggle transparency for the selected theme; Enter applies and remembers it |
 | `:ThemeTools catppuccin-latte` | Apply a theme by its registered name |
 | `:ThemeToolsNext` / `:ThemeToolsPrev` | Cycle the configured order, wrapping at the ends |
 
@@ -200,6 +201,28 @@ Transparent themes use a solid canvas inside the sample so their colors remain
 visible against both dark and light editor themes. Enter still applies the
 theme's actual transparency. On very small screens the sample may be hidden;
 confirmation remains available without a preview.
+
+Press **Ctrl-T** in either picker to toggle the selected theme's transparency.
+The picker and sample show `transparent on/off`; `default` means the native
+setting is still being resolved. The sample retains a solid canvas so colors
+remain readable; its label reports the actual transparency that will be applied.
+In window-preview mode this changes only the sample. In live mode it immediately
+updates the editor and shared palette consumers. Enter applies and saves the
+selected theme's preference; Escape cancels it. Unconfirmed edits to other themes
+are not saved when you confirm a different theme. Category menus have no toggle.
+
+Preferences are stored **per theme ID**, alongside the last selection, and restore
+on startup and subsequent Theme Tools switches. Old state files still work.
+Themes without a saved preference keep their native configuration. To provide a
+default for a theme, register it with `transparent = true` or `false`; a saved
+choice takes precedence. Explicit choices override provider options and synchronous
+ColorScheme customizations for the editor, floats, gutters and unaccented bars.
+Selection/search backgrounds and mode indicators keep their contrasting colors.
+Unknown themes use their standard background, with an opaque fallback if needed.
+
+Change the mapping with `picker.transparency_key = "<F4>"`, or disable the UI
+control with `picker.transparency_key = false`. `persist = false` keeps confirmed
+preferences only for the current setup. The state file contains data, not code.
 
 Set `picker.preview_mode = "live"` to restore editor-wide previews. The default is
 `"window"`. Post-ColorScheme custom highlights can be mirrored in the worker with

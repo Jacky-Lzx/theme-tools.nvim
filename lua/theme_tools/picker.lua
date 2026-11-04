@@ -1,5 +1,6 @@
 local M = {}
 local colors = require("theme_tools.colors")
+local transparency = require("theme_tools.transparency")
 local active
 local ns = vim.api.nvim_create_namespace("theme_tools_picker")
 
@@ -131,19 +132,43 @@ local function render(session)
   vim.bo[session.list_buf].modifiable = false
   vim.api.nvim_buf_clear_namespace(session.list_buf, ns, 0, -1)
   local theme = session.matches[session.index]
+  local function status(frame)
+    if theme and session.opts.apply ~= false and transparency.key(session.opts) then
+      vim.api.nvim_win_set_config(session.list_win, {
+        footer = " "
+          .. transparency.key(session.opts)
+          .. ": transparent "
+          .. transparency.label(theme, frame)
+          .. " · Enter · Esc ",
+      })
+    end
+  end
+  status(theme and session.frames[theme.name])
   if theme then
     vim.api.nvim_buf_set_extmark(session.list_buf, ns, session.index - 1, 0, { line_hl_group = "PmenuSel" })
     vim.api.nvim_win_set_cursor(session.list_win, { session.index, 0 })
     if session.viewer and session.preview_win then
       session.viewer:show(theme, function(frame, err)
         if active == session then
+          if frame then
+            session.frames[theme.name] = frame
+            status(frame)
+          end
           require("theme_tools.sample").draw(session.preview_buf, session.preview_win, theme, frame, err)
         end
       end)
-    elseif not session.viewer and session.opts.preview ~= false and session.previewed ~= theme.name then
+    elseif
+      not session.viewer
+      and session.opts.preview ~= false
+      and (session.previewed ~= theme.name or session.previewed_transparent ~= theme.transparent)
+    then
       local ok, err = colors.apply(theme)
       if ok then
         session.previewed = theme.name
+        session.previewed_transparent = theme.transparent
+        session.frames[theme.name] =
+          { transparent = require("theme_tools.palettes.fallback").highlight("Normal", "bg") == nil }
+        status(session.frames[theme.name])
       elseif session.failed ~= theme.name then
         session.failed = theme.name
         notify(err)
@@ -199,6 +224,7 @@ function M.open(themes, current, opts, confirm)
     index = 1,
     original = colors.snapshot(),
     previewed = current,
+    frames = {},
     group = vim.api.nvim_create_augroup("ThemeToolsPicker", { clear = true }),
   }
   if opts.preview_mode ~= "live" and opts.apply ~= false then
@@ -211,6 +237,9 @@ function M.open(themes, current, opts, confirm)
   for i, theme in ipairs(themes) do
     if theme.name == current then
       session.index = i
+      session.previewed_transparent = theme.transparent
+      session.frames[theme.name] =
+        { transparent = require("theme_tools.palettes.fallback").highlight("Normal", "bg") == nil }
       break
     end
   end
@@ -279,6 +308,17 @@ function M.open(themes, current, opts, confirm)
   if opts.on_group then
     map("<C-g>", opts.on_group)
   end
+  local transparency_key = transparency.key(opts)
+  if opts.apply ~= false and transparency_key then
+    map(transparency_key, function()
+      filter(session)
+      local theme = session.matches[session.index]
+      if theme then
+        transparency.toggle(theme, session.frames[theme.name])
+        render(session)
+      end
+    end)
+  end
   if session.viewer then
     local function scroll(step)
       if session.preview_win and vim.api.nvim_win_is_valid(session.preview_win) then
@@ -301,7 +341,10 @@ function M.open(themes, current, opts, confirm)
     filter(session)
     local theme = session.matches[session.index]
     if theme then
-      if opts.apply ~= false and (session.viewer or session.previewed ~= theme.name) then
+      if
+        opts.apply ~= false
+        and (session.viewer or session.previewed ~= theme.name or session.previewed_transparent ~= theme.transparent)
+      then
         local applied, reason = colors.apply(theme)
         if not applied then
           notify(reason)

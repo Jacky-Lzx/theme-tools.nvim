@@ -70,6 +70,7 @@ function M.apply(theme)
     vim.g.terminal_color_background = nil
     vim.g.terminal_color_foreground = nil
     vim.cmd.colorscheme(theme.colorscheme)
+    require("theme_tools.transparency").apply(theme.transparent)
   end)
   if not ok then
     M.restore(snapshot)
