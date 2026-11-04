@@ -45,7 +45,7 @@ try:
       vim.api.nvim_create_autocmd('User',{pattern='ThemeToolsChanged',callback=function() changed=changed+1 end})
       assert(t.pick())
     """)
-    assert "Filter themes" in screen() and "morning" in screen()
+    assert "Themes" in screen() and "morning" in screen()
     assert lua("return vim.fn.mode()") == "i"
     initial_bg = ui.bg
     keys("<Down>")
@@ -86,7 +86,7 @@ try:
     keys("zzzz")
     assert "No matching themes" in screen(), screen()
     keys("<CR>")
-    assert lua("return #vim.api.nvim_list_wins()") == 3
+    assert lua("return #vim.api.nvim_list_wins()") >= 4
     keys("<C-u>des")
     assert lua("return vim.g.colors_name") == "desert"
     ui.request("nvim_ui_try_resize", [28, 12])

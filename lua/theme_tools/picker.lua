@@ -9,67 +9,78 @@ local function notify(err)
 end
 
 local function layout(opts)
-  local available = vim.o.lines - vim.o.cmdheight
-  if vim.o.columns < 16 or available < 7 then
-    return nil
+  return require("theme_tools.picker_style").resolve(opts, opts.preview_mode ~= "live" and opts.apply ~= false)
+end
+
+local function scratch()
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.bo[buf].bufhidden = "wipe"
+  vim.bo[buf].swapfile = false
+  return buf
+end
+
+local function frame(session)
+  local geometry = session.geometry
+  local count = (" %d/%d "):format(#session.matches > 0 and session.index or 0, #session.matches)
+  local input_width = math.max(1, geometry.width - vim.fn.strdisplaywidth(count))
+  vim.api.nvim_win_set_config(session.input_win, { width = input_width })
+  local lines = {}
+  for i = 1, geometry.height do
+    lines[i] = ""
   end
-  local width = math.min(math.floor(opts.width), vim.o.columns - 4)
-  local height = math.min(math.floor(opts.height), available - 6)
-  local row = math.floor((available - height - 5) / 2)
-  local preview_height
-  if opts.preview_mode ~= "live" and opts.apply ~= false and available >= 16 then
-    local content = math.min(math.floor(opts.height) + 12, available - 9)
-    height = math.min(math.floor(opts.height), math.max(2, math.floor(content / 4)))
-    preview_height = content - height
-    width = math.min(math.max(width, 80), vim.o.columns - 4)
-    row = math.floor((available - content - 7) / 2)
+  vim.bo[session.frame_buf].modifiable = true
+  vim.api.nvim_buf_set_lines(session.frame_buf, 0, -1, false, lines)
+  vim.bo[session.frame_buf].modifiable = false
+  vim.api.nvim_buf_clear_namespace(session.frame_buf, ns, 0, -1)
+  vim.api.nvim_buf_set_extmark(session.frame_buf, ns, geometry.height - 1, 0, {
+    virt_text = { { count, "Comment" } },
+    virt_text_pos = "right_align",
+  })
+  local border = vim.api.nvim_win_get_config(session.frame_win).border or {}
+  local function char(i)
+    return type(border[i]) == "table" and border[i][1] or border[i] or ""
   end
-  local col = math.floor((vim.o.columns - width - 2) / 2)
-  local result = {
-    input = {
+  local left, right = char(8), char(4)
+  local joints = { ["│"] = { "├", "┤" }, ["║"] = { "╠", "╣" }, ["┃"] = { "┣", "┫" } }
+  local horizontal = left == "║" and "═" or left == "┃" and "━" or "─"
+  local dividers = {}
+  for _, row in ipairs(geometry.separators) do
+    dividers[#dividers + 1] = (joints[left] and joints[left][1] or left)
+      .. string.rep(horizontal, geometry.width)
+      .. (joints[right] and joints[right][2] or right)
+  end
+  vim.bo[session.separator_buf].modifiable = true
+  vim.api.nvim_buf_set_lines(session.separator_buf, 0, -1, false, dividers)
+  vim.bo[session.separator_buf].modifiable = false
+  for i, row in ipairs(geometry.separators) do
+    local conf = {
       relative = "editor",
-      row = row,
-      col = col,
-      width = width,
+      style = "minimal",
+      row = geometry.frame.row + row + 1,
+      col = geometry.frame.col,
+      width = geometry.width + 2,
       height = 1,
-      style = "minimal",
-      border = opts.border,
-      title = opts.filter_title or (opts.apply == false and " Filter groups " or " Filter themes "),
-      title_pos = "center",
-      zindex = 60,
-    },
-    list = {
-      relative = "editor",
-      row = row + 3,
-      col = col,
-      width = width,
-      height = height,
-      style = "minimal",
-      border = opts.border,
-      title = " " .. (opts.prompt or "Themes") .. " ",
-      title_pos = "center",
-      footer = opts.footer or (opts.apply == false and " Enter: open  Esc: cancel " or " Enter: apply  Esc: cancel "),
-      footer_pos = "center",
       focusable = false,
-      zindex = 60,
-    },
-  }
-  if preview_height then
-    result.preview = {
-      relative = "editor",
-      row = row + height + 5,
-      col = col,
-      width = width,
-      height = preview_height,
-      style = "minimal",
-      border = opts.border,
-      title = " Theme preview · Ctrl-D/U: scroll ",
-      title_pos = "center",
-      focusable = false,
-      zindex = 60,
+      zindex = 62,
     }
+    local win = session.separator_wins[i]
+    if win and vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_set_config(win, conf)
+    else
+      win = vim.api.nvim_open_win(session.separator_buf, false, conf)
+      session.separator_wins[i] = win
+    end
+    vim.wo[win].winhighlight = "Normal:FloatBorder"
+    vim.wo[win].wrap = false
+    vim.api.nvim_win_set_cursor(win, { i, 0 })
   end
-  return result
+  for i = #geometry.separators + 1, #session.separator_wins do
+    local win = session.separator_wins[i]
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+    session.separator_wins[i] = nil
+  end
 end
 
 local function finish(session, accept)
@@ -82,12 +93,25 @@ local function finish(session, accept)
   if session.viewer then
     session.viewer:close()
   end
-  for _, win in ipairs({ session.input_win, session.list_win, session.preview_win or -1 }) do
+  for _, win in
+    ipairs(
+      vim.list_extend(
+        { session.input_win, session.list_win, session.preview_win or -1, session.frame_win },
+        session.separator_wins
+      )
+    )
+  do
     if vim.api.nvim_win_is_valid(win) then
       vim.api.nvim_win_close(win, true)
     end
   end
-  for _, buf in ipairs({ session.input_buf, session.list_buf, session.preview_buf or -1 }) do
+  for _, buf in ipairs({
+    session.input_buf,
+    session.list_buf,
+    session.preview_buf or -1,
+    session.frame_buf,
+    session.separator_buf,
+  }) do
     if vim.api.nvim_buf_is_valid(buf) then
       vim.api.nvim_buf_delete(buf, { force = true })
     end
@@ -118,6 +142,7 @@ local function render(session)
   if active ~= session then
     return
   end
+  frame(session)
   local width = vim.api.nvim_win_get_width(session.list_win)
   local lines = {}
   for _, theme in ipairs(session.matches) do
@@ -134,12 +159,14 @@ local function render(session)
   local theme = session.matches[session.index]
   local function status(frame)
     if theme and session.opts.apply ~= false and transparency.key(session.opts) then
-      vim.api.nvim_win_set_config(session.list_win, {
-        footer = " "
+      vim.api.nvim_win_set_config(session.frame_win, {
+        title = " "
+          .. (session.opts.prompt or "Themes")
+          .. " · "
           .. transparency.key(session.opts)
           .. ": transparent "
           .. transparency.label(theme, frame)
-          .. " · Enter · Esc ",
+          .. " ",
       })
     end
   end
@@ -225,11 +252,16 @@ function M.open(themes, current, opts, confirm)
     original = opts.preview ~= false and colors.snapshot() or nil,
     previewed = current,
     frames = {},
+    geometry = geometry,
+    separator_wins = {},
+    frame_buf = scratch(),
+    separator_buf = scratch(),
     group = vim.api.nvim_create_augroup("ThemeToolsPicker", { clear = true }),
   }
   if opts.preview_mode ~= "live" and opts.apply ~= false then
     session.viewer = require("theme_tools.preview").new()
     session.preview_buf = vim.api.nvim_create_buf(false, true)
+    vim.b[session.preview_buf].theme_tools_picker_role = "preview"
     vim.bo[session.preview_buf].bufhidden = "wipe"
     vim.bo[session.preview_buf].filetype = "theme-tools-preview"
     vim.bo[session.preview_buf].swapfile = false
@@ -245,14 +277,24 @@ function M.open(themes, current, opts, confirm)
   end
   session.input_buf = vim.api.nvim_create_buf(false, true)
   session.list_buf = vim.api.nvim_create_buf(false, true)
+  for role, buf in pairs({
+    frame = session.frame_buf,
+    separator = session.separator_buf,
+    input = session.input_buf,
+    list = session.list_buf,
+  }) do
+    vim.b[buf].theme_tools_picker_role = role
+  end
   for _, buf in ipairs({ session.input_buf, session.list_buf }) do
     vim.bo[buf].bufhidden = "wipe"
     vim.bo[buf].filetype = "theme-tools"
     vim.bo[buf].swapfile = false
     vim.bo[buf].undolevels = -1
   end
-  -- Build both windows before entering the editable filter.
+  -- A single bordered frame contains all borderless panes.
+
   local ok, err = pcall(function()
+    session.frame_win = vim.api.nvim_open_win(session.frame_buf, false, geometry.frame)
     session.list_win = vim.api.nvim_open_win(session.list_buf, false, geometry.list)
     session.input_win = vim.api.nvim_open_win(session.input_buf, true, geometry.input)
     if geometry.preview then
@@ -263,12 +305,23 @@ function M.open(themes, current, opts, confirm)
     if session.viewer then
       session.viewer:close()
     end
-    for _, win in ipairs({ session.list_win or -1, session.input_win or -1, session.preview_win or -1 }) do
+    for _, win in ipairs({
+      session.list_win or -1,
+      session.input_win or -1,
+      session.preview_win or -1,
+      session.frame_win or -1,
+    }) do
       if vim.api.nvim_win_is_valid(win) then
         vim.api.nvim_win_close(win, true)
       end
     end
-    for _, buf in ipairs({ session.input_buf, session.list_buf, session.preview_buf or -1 }) do
+    for _, buf in ipairs({
+      session.input_buf,
+      session.list_buf,
+      session.preview_buf or -1,
+      session.frame_buf,
+      session.separator_buf,
+    }) do
       if vim.api.nvim_buf_is_valid(buf) then
         vim.api.nvim_buf_delete(buf, { force = true })
       end
@@ -277,6 +330,9 @@ function M.open(themes, current, opts, confirm)
     return nil, tostring(err)
   end
   active = session
+  for _, win in ipairs({ session.frame_win, session.list_win, session.input_win }) do
+    vim.wo[win].winhighlight = "Normal:NormalFloat"
+  end
   vim.wo[session.input_win].wrap = false
   vim.wo[session.list_win].wrap = false
   vim.wo[session.list_win].scrolloff = 0
@@ -387,7 +443,12 @@ function M.open(themes, current, opts, confirm)
       vim.schedule(function()
         if
           active == session
-          and (closed == session.input_win or closed == session.list_win or closed == session.preview_win)
+          and (
+            closed == session.input_win
+            or closed == session.list_win
+            or closed == session.frame_win
+            or closed == session.preview_win
+          )
         then
           M.close()
         end
@@ -402,6 +463,8 @@ function M.open(themes, current, opts, confirm)
         M.close()
         return
       end
+      session.geometry = resized
+      vim.api.nvim_win_set_config(session.frame_win, resized.frame)
       vim.api.nvim_win_set_config(session.input_win, resized.input)
       vim.api.nvim_win_set_config(session.list_win, resized.list)
       if resized.preview then

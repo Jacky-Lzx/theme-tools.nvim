@@ -56,9 +56,10 @@ function M.open(items, current, opts, prepare, apply)
     resume = false,
     multi = false,
     item_icons = false,
+    layout = require("theme_tools.picker_style").selection(opts),
     preview = { enabled = false },
     format_item = function(item)
-      return item.label
+      return "  " .. item.label
     end,
     before_confirm = function(ctx)
       local ok, err = prepare(ctx.item.name)

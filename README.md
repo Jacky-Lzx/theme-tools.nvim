@@ -171,7 +171,7 @@ require("theme_tools").setup({
     mini = {},     -- upstream mini.icons setup options
     devicons = {}, -- upstream nvim-web-devicons setup options
     -- picker.backend and picker.selection inherit the theme picker settings.
-    picker = { width = 72, height = 8, border = "rounded" },
+    picker = { width = 0.98, height = 0.96, preview_height = 0.6, border = "rounded" },
     overrides = {
       diagnostic = { error = { icon = "!", ascii = "E", hl = "DiagnosticError" } },
     },
@@ -269,11 +269,21 @@ require("theme_tools").setup({
 
 Install `selection-tools.nvim` as a dependency, using a version with the
 `on_change` callback. In a local lazy.nvim setup, add its checkout to `dependencies` (see
-[examples/lazy.lua](examples/lazy.lua)). `:ThemeTools` then uses its compact
-single-selection picker, initially highlighting the active theme. Moving or
+[examples/lazy.lua](examples/lazy.lua)). `:ThemeTools` then uses a single bordered
+frame with the preview above the list and the filter at the bottom, initially
+highlighting the active theme. Moving or
 filtering updates a separate theme sample; Enter applies and saves the theme.
 Cancelling leaves the editor unchanged. Existing selection-tools key bindings apply.
 `picker.selection` accepts per-picker layout, matcher and key overrides.
+
+Both backends and the icon selector share this frame style and proportions.
+The bottom-right counter shows the selected match and total. `picker.width` and
+`height` default to `0.98` and `0.96`: values up to `1` are screen fractions;
+larger values are cell limits for the complete frame. `preview_height = 0.6`
+allocates the upper pane. Icon picker dimensions inherit the theme picker unless
+overridden under `icons.picker`. The layout fits small terminals and resizes.
+Selection-tools navigation/matching overrides still apply; its compact
+`vim.ui.select` layout no longer changes these selectors' placement.
 
 ## Use
 

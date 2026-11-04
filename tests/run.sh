@@ -25,6 +25,7 @@ python3 tests/transparency_ui.py
 python3 tests/selection_ui.py
 python3 tests/groups_ui.py
 python3 tests/window_ui.py
+python3 tests/picker_style_ui.py
 python3 tests/tui.py
 python3 tests/icons_tui.py
 if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-tools.nvim ] && [ -d ../notification-tools.nvim ]; then

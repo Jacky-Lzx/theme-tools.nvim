@@ -10,7 +10,7 @@ local defaults = {
   devicons = {},
   overrides = {},
   sources = {},
-  picker = { backend = "builtin", width = 72, height = 8, border = "rounded" },
+  picker = { backend = "builtin", width = 0.98, height = 0.96, preview_height = 0.6, border = "rounded" },
 }
 local config = vim.deepcopy(defaults)
 local selected = defaults.default
@@ -336,8 +336,12 @@ function M.setup(opts)
   assert(type(new.mini) == "table" and type(new.devicons) == "table", "icon provider options must be tables")
   assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid icons.picker.backend")
   for _, dimension in ipairs({ "width", "height" }) do
-    assert(type(new.picker[dimension]) == "number" and new.picker[dimension] >= 1, "invalid icons.picker." .. dimension)
+    assert(type(new.picker[dimension]) == "number" and new.picker[dimension] > 0, "invalid icons.picker." .. dimension)
   end
+  assert(
+    type(new.picker.preview_height) == "number" and new.picker.preview_height > 0,
+    "invalid icons.picker.preview_height"
+  )
   assert(type(new.overrides) == "table" and type(new.sources) == "table", "invalid icon overrides/sources")
   local catalog = require("theme_tools.icons.catalog")
   for category, values in pairs(new.overrides) do

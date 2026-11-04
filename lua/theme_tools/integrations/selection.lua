@@ -84,6 +84,7 @@ function M.open(themes, current, opts, confirm)
     multi = false,
     preview = { enabled = window_preview },
     item_icons = false,
+    layout = require("theme_tools.picker_style").selection(opts),
     keys = {
       theme_groups = opts.on_group and { "<C-g>" } or {},
       theme_transparency = opts.apply ~= false and transparency.key(opts) and { transparency.key(opts) } or {},
@@ -126,7 +127,7 @@ function M.open(themes, current, opts, confirm)
       if theme.colorscheme ~= theme.name then
         label = label .. " · " .. theme.colorscheme
       end
-      return label
+      return "  " .. label
     end,
     on_change = function(theme, _, picker)
       session.picker = picker
@@ -167,11 +168,6 @@ function M.open(themes, current, opts, confirm)
     end,
   })
   if window_preview then
-    spec.layout = vim.tbl_deep_extend("force", {
-      height = 0.85,
-      preview_height = 0.65,
-      min_width = 80,
-    }, (opts.selection or {}).layout or {})
     spec.previewer = function(ctx)
       session.viewer:show(ctx.item, function(frame, err)
         if not ctx.is_cancelled() then

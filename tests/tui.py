@@ -119,7 +119,7 @@ def main():
         try:
             term.keys(b":ThemeTools\r")
             assert term.lua("return vim.fn.mode()") == "i"
-            assert b"Filter themes" in term.output and b"morning" in term.output
+            assert b"Themes" in term.output and b"morning" in term.output
             term.keys(b"\x0e")  # Ctrl-N through the terminal input decoder.
             assert term.lua("return vim.g.colors_name") == "morning"
             term.keys(b"\x1b")
@@ -131,7 +131,7 @@ def main():
             term.resize(30, 13)
             term.drain(0.1)
             assert term.lua("return vim.o.columns") == 30
-            assert term.lua("return #vim.api.nvim_list_wins()") == 3
+            assert term.lua("return #vim.api.nvim_list_wins()") >= 4
             term.keys(b"\r")
             assert term.lua("return vim.fn.mode()") == "n"
             assert json.loads(state.read_text())["name"] == "morning"

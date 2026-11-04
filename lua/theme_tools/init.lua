@@ -12,8 +12,9 @@ local defaults = {
   install = { root = vim.fn.stdpath("data") .. "/theme-tools/themes", timeout = 30000 },
   picker = {
     backend = "builtin",
-    width = 52,
-    height = 12,
+    width = 0.98,
+    height = 0.96,
+    preview_height = 0.6,
     border = "rounded",
     group_by_background = true,
     preview_mode = "window",
@@ -318,8 +319,12 @@ function M.setup(opts)
   end
   assert(type(new.discover) == "boolean" and type(new.persist) == "boolean", "discover/persist must be booleans")
   assert(type(new.state_file) == "string" and new.state_file ~= "", "state_file must be nonempty")
-  assert(type(new.picker.width) == "number" and new.picker.width >= 1, "picker.width must be positive")
-  assert(type(new.picker.height) == "number" and new.picker.height >= 1, "picker.height must be positive")
+  assert(type(new.picker.width) == "number" and new.picker.width > 0, "picker.width must be positive")
+  assert(type(new.picker.height) == "number" and new.picker.height > 0, "picker.height must be positive")
+  assert(
+    type(new.picker.preview_height) == "number" and new.picker.preview_height > 0,
+    "picker.preview_height must be positive"
+  )
   assert(vim.tbl_contains({ "builtin", "selection_tools" }, new.picker.backend), "invalid picker.backend")
   assert(type(new.picker.group_by_background) == "boolean", "picker.group_by_background must be boolean")
   assert(vim.tbl_contains({ "window", "live" }, new.picker.preview_mode), "invalid picker.preview_mode")
@@ -349,7 +354,14 @@ function M.setup(opts)
   M.commands()
   M.icons.setup(vim.tbl_deep_extend("force", {
     persist = config.persist,
-    picker = { backend = config.picker.backend, selection = config.picker.selection },
+    picker = {
+      backend = config.picker.backend,
+      selection = config.picker.selection,
+      width = config.picker.width,
+      height = config.picker.height,
+      border = config.picker.border,
+      preview_height = config.picker.preview_height,
+    },
   }, opts.icons or {}))
   local group = vim.api.nvim_create_augroup("theme_tools_sources", { clear = true })
   for name, patterns in pairs(sources) do
