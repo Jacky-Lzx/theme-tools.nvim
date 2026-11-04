@@ -9,7 +9,10 @@ local function notify(err)
 end
 
 local function layout(opts)
-  return require("theme_tools.picker_style").resolve(opts, opts.preview_mode ~= "live" and opts.apply ~= false)
+  return require("theme_tools.picker_style").resolve(
+    opts,
+    opts.preview_draw ~= nil or opts.preview_mode ~= "live" and opts.apply ~= false
+  )
 end
 
 local function scratch()
@@ -119,6 +122,9 @@ local function finish(session, accept)
   if not accept and session.opts.preview ~= false and not session.viewer then
     colors.restore(session.original)
   end
+  if session.opts.on_close then
+    session.opts.on_close()
+  end
 end
 
 function M.close()
@@ -174,7 +180,9 @@ local function render(session)
   if theme then
     vim.api.nvim_buf_set_extmark(session.list_buf, ns, session.index - 1, 0, { line_hl_group = "PmenuSel" })
     vim.api.nvim_win_set_cursor(session.list_win, { session.index, 0 })
-    if session.viewer and session.preview_win then
+    if session.opts.preview_draw and session.preview_win then
+      session.opts.preview_draw(session.preview_buf, session.preview_win, theme)
+    elseif session.viewer and session.preview_win then
       session.viewer:show(theme, function(frame, err)
         if active == session then
           if frame then
@@ -209,6 +217,9 @@ local function render(session)
   then
     colors.restore(session.original)
     session.previewed = nil
+  end
+  if not theme and session.opts.preview_draw and session.preview_win then
+    session.opts.preview_draw(session.preview_buf, session.preview_win, nil)
   end
 end
 
@@ -258,8 +269,10 @@ function M.open(themes, current, opts, confirm)
     separator_buf = scratch(),
     group = vim.api.nvim_create_augroup("ThemeToolsPicker", { clear = true }),
   }
-  if opts.preview_mode ~= "live" and opts.apply ~= false then
-    session.viewer = require("theme_tools.preview").new()
+  if opts.preview_draw or opts.preview_mode ~= "live" and opts.apply ~= false then
+    if not opts.preview_draw then
+      session.viewer = require("theme_tools.preview").new()
+    end
     session.preview_buf = vim.api.nvim_create_buf(false, true)
     vim.b[session.preview_buf].theme_tools_picker_role = "preview"
     vim.bo[session.preview_buf].bufhidden = "wipe"
@@ -327,6 +340,9 @@ function M.open(themes, current, opts, confirm)
       end
     end
     vim.api.nvim_del_augroup_by_id(session.group)
+    if opts.on_close then
+      opts.on_close()
+    end
     return nil, tostring(err)
   end
   active = session
@@ -375,7 +391,7 @@ function M.open(themes, current, opts, confirm)
       end
     end)
   end
-  if session.viewer then
+  if session.preview_buf then
     local function scroll(step)
       if session.preview_win and vim.api.nvim_win_is_valid(session.preview_win) then
         local cursor = vim.api.nvim_win_get_cursor(session.preview_win)

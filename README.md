@@ -151,11 +151,25 @@ configured after them; its public API is also usable before `setup()`.
 
 ## Icons
 
-`:ThemeToolsIcons` opens a searchable display/provider selector with representative
-file and directory samples. Choose `mini`, `devicons` (the default), `ascii`, or
-`none` to hide icons. Enter applies and saves; Escape cancels. Browsing does not
-download providers or change the editor. A failed installation keeps the selector
-open and preserves the previous choice.
+`:ThemeToolsIcons` opens a searchable display/provider selector with a large icon
+preview above the list. Choose `mini`, `devicons` (the default), `ascii`, or `none`
+to hide icons. Enter applies and saves; Escape cancels. Browsing keeps the editor's
+icon selection unchanged. A failed installation keeps the selector open and
+preserves the previous choice.
+
+The preview shows 100+ actual lookups across files, directories, diagnostics,
+Git, UI, LSP completion/symbol types, and operating systems. Each group uses a
+responsive column grid, with the chosen provider's own glyphs and colors.
+Ctrl-D/Ctrl-U scroll the sample in either backend. Selection-tools keys can be
+overridden with `icons.picker.selection.keys.preview_down` / `preview_up`.
+ASCII and hidden choices preview their actual text/empty icons with labels.
+
+Provider setup, downloads and highlight lookup run in a disposable background
+Neovim. Its colors are isolated to the preview pane; host consumers, modules and
+saved choices stay unchanged until confirmation. First preview can download the
+pinned source; subsequent previews reuse it offline. Pending results are coalesced,
+obsolete results are ignored, and closing the picker stops its worker. Download
+errors appear inside the sample without replacing the current provider.
 
 ```lua
 require("theme_tools").setup({
@@ -182,8 +196,8 @@ require("theme_tools").setup({
 No separate icon-plugin dependency is needed. Theme Tools downloads the official
 [mini.icons](https://github.com/nvim-mini/mini.icons) and
 [nvim-web-devicons](https://github.com/nvim-tree/nvim-web-devicons) sources into
-immutable commit directories. Setup only restores the provider ID; first lookup
-or selection installs and initializes the chosen provider. ASCII and hidden modes
+immutable commit directories. Setup only restores the provider ID; first lookup,
+preview or selection installs the chosen provider. ASCII and hidden modes
 need neither Git nor a font with icon glyphs. Installed revisions work offline.
 If a lazy lookup cannot download its provider, it warns once and returns built-in
 fallback icons; selecting the provider or installing again retries.
@@ -195,8 +209,8 @@ fallback icons; selecting the provider or installing again retries.
 | `:ThemeToolsIconsInstall [mini\|devicons]` | Download one or both configured sources |
 | `:ThemeToolsIconsUpdate [mini\|devicons]` | Resolve upstream and install a verified new revision |
 
-Updates save their revision only after successful installation, retain previous
-checkouts, and never run in the background. A provider already loaded in Neovim
+Explicit updates save their revision only after successful installation and retain
+previous checkouts. No automatic updates run. A provider already loaded in Neovim
 keeps its module until restart; the next process uses the updated revision.
 Existing modules loaded by another manager are also reused until restart. Remove
 duplicate provider specs/setup calls when transferring ownership to Theme Tools.

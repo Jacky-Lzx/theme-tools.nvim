@@ -168,6 +168,8 @@ function M.open(themes, current, opts, confirm)
     end,
   })
   if window_preview then
+    spec.keys.preview_down = ((opts.selection or {}).keys or {}).preview_down or { "<C-d>" }
+    spec.keys.preview_up = ((opts.selection or {}).keys or {}).preview_up or { "<C-u>" }
     spec.previewer = function(ctx)
       session.viewer:show(ctx.item, function(frame, err)
         if not ctx.is_cancelled() then

@@ -51,7 +51,11 @@ local function publish()
     end
   end
   vim.api.nvim_exec_autocmds("User", { pattern = "ThemeToolsIconsChanged", modeline = false, data = descriptor() })
-  vim.cmd.redrawstatus()
+  -- Startup restores the theme after icon preferences; do not expose the
+  -- editor's default background before that restoration finishes.
+  if vim.v.vim_did_enter == 1 then
+    vim.cmd.redrawstatus()
+  end
 end
 
 local function source(name)
@@ -115,6 +119,22 @@ end
 
 function M.current()
   return selected
+end
+
+function M._preview_options()
+  return {
+    icons = {
+      persist = false,
+      install = config.install,
+      providers = config.providers,
+      mini = config.mini,
+      devicons = config.devicons,
+      overrides = config.overrides,
+      sources = config.sources,
+    },
+    highlights = vim.api.nvim_get_hl(0, {}),
+    background = vim.o.background,
+  }
 end
 
 function M.list()

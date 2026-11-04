@@ -187,8 +187,19 @@ ICONS                                                 *theme-tools-icons*
 
 :ThemeToolsIcons opens a searchable display/provider picker with samples.
 Choices: mini (mini.icons), devicons (nvim-web-devicons, default), ascii, none.
-Enter applies and saves; Escape cancels. Browsing does not change icons or fetch
-sources. Download failures keep the picker open and preserve the current choice.
+Enter applies and saves; Escape cancels. Browsing leaves the active icons and saved
+choice unchanged. The top pane shows 100+ actual lookups: files, directories,
+diagnostics, Git, UI, LSP completion/symbol types and operating systems. A responsive
+column grid displays the provider's glyphs/colors; ascii/none show text/empty icons.
+Ctrl-D/Ctrl-U scroll in both backends. Override selection-tools keys through
+icons.picker.selection.keys.preview_down/preview_up.
+
+A disposable background Neovim handles provider setup, pinned downloads and icon
+lookups. First preview may install the source; installed revisions work offline.
+Highlight namespaces keep colors inside the sample. Host modules, icon consumers
+and selection state are unchanged until Enter. Stale requests cannot paint the
+latest choice, and cancellation stops the worker. Preview errors appear inside
+the pane; failed confirmation keeps the picker open and the previous choice active.
 The theme picker backend/selection settings are inherited; icons.picker overrides
 them. No global key mappings are installed.
 >
@@ -211,7 +222,7 @@ them. No global key mappings are installed.
   })
 <
 icons.persist inherits persist. Icon choices are saved separately from themes.
-Setup only restores the provider ID. First get()/set() downloads the selected
+Setup only restores the provider ID. First get()/preview/set() downloads the selected
 provider from its official Git repository at a fixed SHA. Installed checkouts
 are reused offline; ascii/none need no download. Lazy lookup failures warn once
 and return built-in glyphs. set()/install() can retry. No separate provider specs

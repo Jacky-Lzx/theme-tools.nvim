@@ -34,7 +34,7 @@ function Viewer:show(theme, draw)
   self.draw = draw
   local key = theme.name
     .. "\0"
-    .. theme.colorscheme
+    .. (theme.colorscheme or "")
     .. "\0"
     .. (theme.background or "")
     .. "\0"
@@ -54,7 +54,7 @@ function Viewer:show(theme, draw)
     return
   end
   if not self.job then
-    local options = require("theme_tools")._preview_options()
+    local options = self.options or require("theme_tools")._preview_options()
     local encoded, configuration = pcall(require("theme_tools.serialize").encode, options)
     if not encoded then
       draw(nil, configuration)
@@ -70,21 +70,21 @@ function Viewer:show(theme, draw)
           vim.fn.delete(logfile)
           if not self.closed then
             self.job = nil
-            M.receive(self.id, 0, nil, "Theme preview process exited")
+            M.receive(self.id, 0, nil, "Preview process exited")
           end
         end,
       }
     )
     if self.job <= 0 then
       self.job = nil
-      draw(nil, "Cannot start theme preview process")
+      draw(nil, "Cannot start preview process")
       return
     end
     vim.rpcnotify(
       self.job,
       "nvim_exec_lua",
       [[
-      local encoded, id, rtp, packpath, path, cpath = ...
+      local encoded, id, rtp, packpath, path, cpath, worker = ...
       local parent
       for _, info in ipairs(vim.api.nvim_list_chans()) do
         if info.stream == 'stdio' and info.mode == 'rpc' then parent = info.id; break end
@@ -93,13 +93,13 @@ function Viewer:show(theme, draw)
       local ok, err = pcall(function()
         vim.o.runtimepath, vim.o.packpath = rtp, packpath
         package.path, package.cpath = path, cpath
-        require('theme_tools.preview_worker').setup(assert(loadstring(encoded))(), parent, id)
+        require(worker).setup(assert(loadstring(encoded))(), parent, id)
       end)
       if not ok then
         vim.rpcnotify(parent, 'nvim_exec_lua', "require('theme_tools.preview').receive(...)", {id, 0, vim.NIL, tostring(err)})
       end
     ]],
-      { configuration, self.id, vim.o.runtimepath, vim.o.packpath, package.path, package.cpath }
+      { configuration, self.id, vim.o.runtimepath, vim.o.packpath, package.path, package.cpath, self.worker }
     )
   end
   self.pending = true
@@ -107,14 +107,21 @@ function Viewer:show(theme, draw)
   vim.rpcnotify(
     self.job,
     "nvim_exec_lua",
-    "require('theme_tools.preview_worker').request(...)",
-    { self.request, payload }
+    "local worker, id, payload = ...; require(worker).request(id, payload)",
+    { self.worker, self.request, payload }
   )
 end
 
-function M.new()
+function M.new(opts)
+  opts = opts or {}
   next_id = next_id + 1
-  local viewer = setmetatable({ id = next_id, request = 0, cache = {} }, Viewer)
+  local viewer = setmetatable({
+    id = next_id,
+    request = 0,
+    cache = {},
+    worker = opts.worker or "theme_tools.preview_worker",
+    options = opts.options,
+  }, Viewer)
   workers[viewer.id] = viewer
   return viewer
 end

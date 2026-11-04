@@ -19,6 +19,7 @@ fi
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l scripts/build_mocha.lua --check
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icon_preview.lua
 python3 tests/ui.py
 python3 tests/palette_ui.py
 python3 tests/transparency_ui.py
@@ -26,6 +27,7 @@ python3 tests/selection_ui.py
 python3 tests/groups_ui.py
 python3 tests/window_ui.py
 python3 tests/picker_style_ui.py
+python3 tests/icon_preview_ui.py
 python3 tests/tui.py
 python3 tests/icons_tui.py
 if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-tools.nvim ] && [ -d ../notification-tools.nvim ]; then
