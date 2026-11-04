@@ -224,11 +224,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
             "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
         )
         check_backgrounds(term, False)
+        term.lua(
+            "dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_bars.lua')"
+        )
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )
     finally:
         term.close()
 print(
-    "configured PTY: namespaced Mocha/Dracula/Latte samples, custom highlights, global isolation, scrolling, immediate confirm, cancel and restart passed"
+    "configured PTY: isolated theme samples, custom highlights, bar palettes, scrolling, confirm, cancel and restart passed"
 )

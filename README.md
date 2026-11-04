@@ -176,6 +176,11 @@ The original variants keep their own Catppuccin configuration.
   editable source and `colors/theme-tools-mocha.lua`.
 - Use `require("theme_tools.mocha.palette")` for statusline palette references.
 
+The plugin includes `lualine.themes.theme-tools-mocha`, so lualine's `theme = "auto"`
+uses the personal palette, mode colors and transparent statusline background.
+It does not load Catppuccin. Barbar's palette groups are included in the generated
+colorscheme and remain active when Barbar loads later.
+
 The generator runs offline without upstream installed. Its deterministic output
 contains direct `nvim_set_hl` calls with merged overrides and literal colors.
 Startup reads only that file; it never loads the source groups or generator.
