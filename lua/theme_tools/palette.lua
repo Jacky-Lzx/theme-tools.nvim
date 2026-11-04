@@ -87,7 +87,7 @@ function M.refresh()
   table.sort(ids)
   for _, id in ipairs(ids) do
     if subscribers[id] == callbacks[id] then
-      call(id, callbacks[id])
+      call(id, callbacks[id].callback)
     end
   end
 end
@@ -143,14 +143,15 @@ function M.on_change(id, callback)
   assert(type(id) == "string" and id ~= "", "subscriber ID must be nonempty")
   assert(type(callback) == "function", "subscriber callback must be a function")
   initialize()
-  subscribers[id] = callback
+  local entry = { callback = callback }
+  subscribers[id] = entry
   if depth == 0 then
     current = (not current or pending) and resolve() or current
     call(id, callback)
   end
   return function()
     -- A stale cleanup closure must not remove a newer registration with the same ID.
-    if subscribers[id] == callback then
+    if subscribers[id] == entry then
       subscribers[id] = nil
     end
   end

@@ -1,9 +1,20 @@
 local M = {}
 
 function M.highlight(name, field)
-  local value = vim.api.nvim_get_hl(0, { name = name, link = false, create = false })[field]
-  if type(value) == "number" and value >= 0 then
-    return string.format("#%06x", value)
+  -- link=false can resolve through the active window's winhighlight namespace.
+  -- Read raw global definitions and follow their links without window remapping.
+  local seen = {}
+  while name and not seen[name] do
+    seen[name] = true
+    local hl = vim.api.nvim_get_hl(0, { name = name, link = true, create = false })
+    if not hl.link then
+      local value = hl[field]
+      if type(value) == "number" and value >= 0 then
+        return string.format("#%06x", value)
+      end
+      return
+    end
+    name = hl.link
   end
 end
 

@@ -15,6 +15,7 @@ export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/selection.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
 python3 tests/ui.py
+python3 tests/palette_ui.py
 python3 tests/selection_ui.py
 python3 tests/groups_ui.py
 python3 tests/window_ui.py

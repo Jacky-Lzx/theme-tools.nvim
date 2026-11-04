@@ -34,6 +34,9 @@ local old_stop = themes.on_change("consumer", function() end)
 local stop = themes.on_change("consumer", subscriber)
 old_stop()
 assert(#seen == 1, "late subscriber must run immediately")
+local same_callback_stop = stop
+stop = themes.on_change("consumer", subscriber)
+same_callback_stop()
 local stop_other = themes.on_change("other", function(value)
   other[#other + 1] = value
 end)

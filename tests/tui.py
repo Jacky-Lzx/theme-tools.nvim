@@ -25,6 +25,7 @@ class Terminal:
             os.execvp(binary, [binary, "-n", *(before or []), "-u", str(init), "-i", "NONE", "--listen", str(address)])
         self.resize(90, 28)
         self.output = b""
+        self.query_tail = b""
         self.serial = 0
         self.socket = socket.socket(socket.AF_UNIX)
         deadline = time.monotonic() + 5
@@ -56,7 +57,17 @@ class Terminal:
         while time.monotonic() < deadline:
             if select.select([self.fd], [], [], min(0.02, max(0, deadline - time.monotonic())))[0]:
                 try:
-                    self.output += os.read(self.fd, 65536)
+                    chunk = os.read(self.fd, 65536)
+                    self.output += chunk
+                    # Behave like a terminal during startup color detection. A
+                    # missing DSR reply makes Nvim draw an unrelated E1568 warning.
+                    pending = self.query_tail + chunk
+                    while b"\x1b[5n" in pending:
+                        query, pending = pending.split(b"\x1b[5n", 1)
+                        if b"\x1b]11;?" in query:
+                            os.write(self.fd, b"\x1b]11;rgb:1e1e/1e1e/2e2e\x07")
+                        os.write(self.fd, b"\x1b[0n")
+                    self.query_tail = pending[-64:]
                 except OSError:
                     break
 

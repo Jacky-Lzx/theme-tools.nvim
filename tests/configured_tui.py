@@ -20,6 +20,15 @@ assert (config / "lua/plugins/ui/theme-tools.lua").is_file(), (
 )
 
 
+def check_startup(term):
+    # Checking the final Normal highlight misses UI redraws before theme setup.
+    # Neovim's default dark background must never reach the terminal on startup.
+    term.drain()
+    assert not re.search(
+        rb"\x1b\[(?:[0-9]+;)*48;2;20;22;27(?:;[0-9]+)*m", term.output
+    ), "UI redrew Neovim's opaque default background before the saved theme loaded"
+
+
 def check_backgrounds(term, light):
     # Read in the editing window: the picker maps Normal to NormalFloat.
     backgrounds = term.lua("""
@@ -49,6 +58,37 @@ def check_backgrounds(term, light):
         ), "opaque Latte background was not sent to the terminal"
     else:
         assert not backgrounds, backgrounds
+
+
+def check_shared_colors(term):
+    assert term.lua("""
+      local c=require('theme_tools').palette()
+      if c.name~=vim.g.colors_name or c.background~=vim.o.background then return false end
+      local bases={['theme-tools-mocha']='#1e1e2e',['catppuccin-mocha']='#1e1e2e',
+        ['catppuccin-latte']='#eff1f5',dracula='#282a36'}
+      if bases[c.name] and c.palette.bg~=bases[c.name] then return false end
+      local function color(value) return value=='NONE' and nil or tonumber(value:sub(2),16) end
+      local editing
+      for _,win in ipairs(vim.api.nvim_list_wins()) do
+        if vim.api.nvim_win_get_config(win).relative=='' then editing=win; break end
+      end
+      local function hl(name)
+        return vim.api.nvim_win_call(editing,function() return vim.api.nvim_get_hl(0,{name=name,link=false}) end)
+      end
+      if hl('Normal').bg~=color(c.ui.bg) then return false end
+      if package.loaded['ui_tools.statusline'] then
+        if hl('UiToolsStatusNormal').bg~=color(c.ui.accent) then return false end
+        if hl('UiToolsStatus').bg~=color(c.ui.bg) then return false end
+      end
+      return hl('SelectionToolsMarked').fg==color(c.ui.accent)
+        and hl('SelectionToolsSelected').bg==color(c.ui.selection_bg)
+    """), term.lua("""
+      local result={palette=require('theme_tools').palette(),groups={}}
+      for _,name in ipairs({'Normal','UiToolsStatusNormal','UiToolsStatus','SelectionToolsMarked','SelectionToolsSelected'}) do
+        result.groups[name]=vim.api.nvim_get_hl(0,{name=name,link=false})
+      end
+      return result
+    """)
 
 
 def wait_preview(term, name):
@@ -89,6 +129,8 @@ def remember(term):
       theme_original.terminal.background=vim.g.terminal_color_background
       theme_original.terminal.foreground=vim.g.terminal_color_foreground
       theme_scheme_events=0
+      require('theme_tools').on_change('configured-test',function() theme_palette_events=(theme_palette_events or 0)+1 end)
+      theme_palette_events=0
       vim.api.nvim_create_autocmd('ColorScheme',{callback=function() theme_scheme_events=theme_scheme_events+1 end})
     """)
 
@@ -103,6 +145,7 @@ def stable(term):
       return theme_original.terminal.background==vim.g.terminal_color_background
         and theme_original.terminal.foreground==vim.g.terminal_color_foreground
         and theme_scheme_events==0
+        and theme_palette_events==0
     """), "browsing changed the editor theme"
 
 
@@ -124,6 +167,8 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     before = ["--cmd", "lua dofile(vim.env.NVIM_CONFIG_ROOT .. '/tests/setup.lua')"]
     term = Terminal(config / "init.lua", directory / "first.sock", before)
     try:
+        check_startup(term)
+        check_shared_colors(term)
         assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         assert term.lua(
             "return require('lazy.core.config').plugins['theme-tools.nvim'].dir"
@@ -175,13 +220,15 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         term.keys(b"latte\r")
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
         check_backgrounds(term, True)
+        check_shared_colors(term)
         path = Path(
             term.lua("return vim.fn.stdpath('state') .. '/theme-tools/selection.json'")
         )
         assert json.loads(path.read_text())["name"] == "catppuccin-latte"
-        assert (
-            term.lua("return require('lualine').get_config().options.theme") == "auto"
-        )
+        if term.lua("return package.loaded.lualine ~= nil"):
+            assert term.lua("return require('lualine').get_config().options.theme") == "auto"
+        else:
+            assert term.lua("return package.loaded['ui_tools.statusline'] ~= nil and vim.wo.statusline ~= ''")
         assert term.lua("return vim.fn.maparg('<leader>u]','n')") == ""
         assert term.lua("return vim.fn.maparg('<leader>u[','n')") == ""
         assert "MiniBracketed.treesitter" in term.lua("return vim.fn.maparg(']t','n')")
@@ -192,7 +239,9 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         term.close()
     term = Terminal(config / "init.lua", directory / "light.sock", before)
     try:
+        check_startup(term)
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
+        check_shared_colors(term)
         remember(term)
         term.keys(b" ut")
         wait_preview(term, "catppuccin-latte")
@@ -204,6 +253,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         stable(term)
         term.keys(b"\r")
         assert term.lua("return vim.g.colors_name") == "dracula"
+        check_shared_colors(term)
         assert json.loads(path.read_text())["name"] == "dracula"
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
@@ -212,21 +262,48 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         term.close()
     term = Terminal(config / "init.lua", directory / "dracula.sock", before)
     try:
+        check_startup(term)
         assert term.lua("return vim.g.colors_name") == "dracula"
+        check_shared_colors(term)
         assert term.lua("return package.loaded.catppuccin==nil")
         assert term.lua("return require('theme_tools').set('theme-tools-mocha')")
     finally:
         term.close()
     term = Terminal(config / "init.lua", directory / "personal.sock", before)
     try:
+        check_startup(term)
         assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
         assert term.lua(
             "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
         )
         check_backgrounds(term, False)
-        term.lua(
-            "dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_bars.lua')"
-        )
+        check_shared_colors(term)
+        # Exercise global previews using the actual configured Alt-j/Alt-k mappings.
+        term.lua("""
+          local plugin=require('lazy.core.config').plugins['theme-tools.nvim']
+          local opts=vim.deepcopy(require('lazy.core.plugin').values(plugin,'opts',false))
+          opts.persist=false
+          opts.picker.preview_mode='live'
+          opts.picker.group_by_background=false
+          require('theme_tools').setup(opts)
+        """)
+        term.keys(b" ut")
+        term.keys(b"\x1bj")
+        assert term.lua("return vim.g.colors_name") == "dracula"
+        check_shared_colors(term)
+        term.keys(b"\x1bj\x1bj\x1bk")
+        assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"
+        check_shared_colors(term)
+        term.keys(b"\x1b")
+        assert term.lua("return vim.g.colors_name") == "theme-tools-mocha"
+        check_shared_colors(term)
+        term.keys(b":colorscheme catppuccin-latte\r")
+        check_shared_colors(term)
+        assert term.lua("return require('theme_tools').set('theme-tools-mocha')")
+        if term.lua("return package.loaded.lualine ~= nil"):
+            term.lua(
+                "dofile(require('lazy.core.config').plugins['theme-tools.nvim'].dir .. '/tests/real_bars.lua')"
+            )
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )

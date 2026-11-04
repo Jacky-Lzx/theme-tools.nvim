@@ -43,7 +43,10 @@ try:
     assert lua("return vim.g.colors_name") == "morning"
     screen()
     light_bg = ui.bg
-    assert lua("return vim.api.nvim_get_hl(0,{name='SelectionToolsSelected'}).link") == "Visual"
+    assert lua("""
+      return vim.api.nvim_get_hl(0,{name='SelectionToolsSelected',link=false}).bg
+        == vim.api.nvim_get_hl(0,{name='Visual',link=false}).bg
+    """)
     keys("<A-k><Down>")
     assert lua("return vim.g.colors_name") == "morning"
     keys("<Esc>")
