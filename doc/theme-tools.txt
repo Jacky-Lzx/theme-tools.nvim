@@ -115,10 +115,10 @@ Themes may be strings or tables. Names must be nonempty without whitespace;
 labels are for display only. Duplicate names replace the earlier definition
 while preserving its position. Width and height describe the complete bordered
 frame: values up to 1 are screen fractions; larger values are maximum cell counts.
-Defaults are width=0.98, height=0.96, preview_height=0.6. Both backends place the
-preview above the list and the filter at the bottom, with a right-aligned match
-counter. Theme and icon selectors share this style; icons inherit picker dimensions
-unless icons.picker overrides them. Border uses nvim_open_win() border syntax.
+Builtin defaults are width=0.98, height=0.96, preview_height=0.6, with the preview
+above the list and the filter/counter at the bottom. Builtin icons inherit picker
+dimensions unless icons.picker overrides them. These defaults do not override
+the selection-tools layout. Border uses nvim_open_win() border syntax.
 The four explicit Catppuccin variants infer their light/dark background unless
 overridden. This prevents Catppuccin's remembered flavour from mistaking a later
 selection for a background-mode toggle after an independent theme was active.
@@ -177,9 +177,11 @@ Errors appear in the pane without applying the theme. Enter still attempts the
 normal application; a failed application cannot be committed or saved.
 
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
-on_change API). It inherits matching and keys, while using the shared large frame
-instead of the compact select layout. picker.selection accepts per-picker layout,
-matcher and keys overrides.
+on_change API). Theme and icon pickers call selection_tools.open(), inheriting the
+global layout/matcher/keys like selection_tools.files(). Window dimensions, preview
+proportion, input position, border and reverse list order follow selection-tools.
+The compact select.layout profile is bypassed. picker.selection accepts explicit
+per-picker layout/matcher/keys overrides; omitted fields remain inherited.
 The active theme appears first. Width/height/border above apply to the builtin
 backend. Both backends share preview, persistence and cancellation semantics;
 selection-tools owns selection, window lifecycle and navigation for its backend.

@@ -1,19 +1,5 @@
--- Shared proportions and placement for the builtin and selection-tools UIs.
+-- Builtin frame geometry. The selection-tools backend inherits its own layout.
 local M = {}
-
-function M.selection(opts)
-  return vim.tbl_deep_extend("force", {
-    width = opts.width,
-    height = opts.height,
-    min_width = 1,
-    max_width = 100000,
-    border = opts.border,
-    title_pos = "center",
-    input_position = "bottom",
-    reverse = false,
-    preview_height = opts.preview_height or 0.6,
-  }, (opts.selection or {}).layout or {})
-end
 
 function M.resolve(opts, preview)
   local columns, available = vim.o.columns, vim.o.lines - vim.o.cmdheight

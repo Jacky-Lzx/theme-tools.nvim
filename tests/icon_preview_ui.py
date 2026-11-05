@@ -60,6 +60,7 @@ for backend in ("builtin", "selection_tools"):
         lua(
             """
           t=require('theme_tools'); i=t.icons
+          require('selection_tools').setup({layout={width=0.8,height=0.9,input_position='bottom',reverse=true}})
           root=vim.fn.tempname(); warnings={}; vim.notify=function(x) warnings[#warnings+1]=x end
           t.setup({persist=false,catppuccin=false,dracula=false,default='theme-tools-mocha',themes={'theme-tools-mocha'},
             picker={backend="""

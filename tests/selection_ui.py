@@ -31,8 +31,8 @@ try:
     lua("""
       vim.opt.rtp:prepend(vim.fn.getcwd())
       s=require('selection_tools'); t=require('theme_tools')
-      local original=s.select
-      s.select=function(...) p=original(...); return p end
+      local original=s.open
+      s.open=function(...) p=original(...); return p end
       s.setup({keys={next={'<A-j>','<C-n>','<Down>'},previous={'<A-k>','<C-p>','<Up>'}}})
       path=vim.fn.tempname()
       t.setup({catppuccin=false,state_file=path,picker={backend='selection_tools',group_by_background=false,preview_mode='live'},themes={'habamax','morning','desert'}})

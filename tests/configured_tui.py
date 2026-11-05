@@ -2,11 +2,12 @@
 
 import json
 import os
-from pathlib import Path
 import re
 import shutil
 import signal
 import tempfile
+from pathlib import Path
+
 from tui import Terminal
 
 signal.signal(
@@ -119,6 +120,33 @@ def sample_hl(term, name):
     )
 
 
+def capture_files_layout(term):
+    term.lua("""
+      local s=require('selection_tools'); local original=s.open
+      s.open=function(opts) configured_picker=original(opts); return configured_picker end
+      assert(require('theme_tools').icons.set('ascii'))
+    """)
+    term.keys(b" sf")
+    term.lua("""
+      configured_files_geometry=vim.deepcopy(configured_picker.resolved)
+      configured_files_layout=vim.deepcopy(configured_picker.opts.layout)
+    """)
+    term.keys(b"\x1b")
+
+
+def check_files_layout(term):
+    assert term.lua("""
+      local p=configured_picker
+      if not vim.deep_equal(p.opts.layout,configured_files_layout) then return false end
+      for _,name in ipairs({'frame','list','input','preview'}) do
+        for _,key in ipairs({'row','col','width','height'}) do
+          if p.resolved[name][key]~=configured_files_geometry[name][key] then return false end
+        end
+      end
+      return p.opts.layout.reverse and vim.api.nvim_win_get_cursor(p.list_win)[1]==p.height
+    """), "theme/icon picker differs from the configured Space sf layout"
+
+
 def remember(term):
     term.lua("""
       theme_original={name=vim.g.colors_name,background=vim.o.background,groups={},terminal={}}
@@ -177,12 +205,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
             "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
         )
         check_backgrounds(term, False)
+        capture_files_layout(term)
         remember(term)
         assert (
             term.lua("return vim.fn.maparg('<leader>ut','n')") == "<Cmd>ThemeTools<CR>"
         )
         term.keys(b" ut")
         wait_preview(term, "theme-tools-mocha")
+        check_files_layout(term)
         assert sample_hl(term, "Normal").get("bg") == 0x1E1E2E
         term.keys(b"dracula")
         wait_preview(term, "theme-tools-dracula")
@@ -193,10 +223,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         stable(term)
         term.keys(b"\x1b")
         stable(term)
+        term.keys(b":ThemeToolsIcons\r")
+        check_files_layout(term)
+        term.keys(b"\x1b")
+        stable(term)
         term.keys(b" utlatte")
         stable(term)
         term.keys(b"\x07")
-        term.keys(b"\x0e")
+        term.keys(b"\x10")
         stable(term)
         term.keys(b"\r")
         wait_preview(term, "catppuccin-latte")
@@ -226,9 +260,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         )
         assert json.loads(path.read_text())["name"] == "catppuccin-latte"
         if term.lua("return package.loaded.lualine ~= nil"):
-            assert term.lua("return require('lualine').get_config().options.theme") == "auto"
+            assert (
+                term.lua("return require('lualine').get_config().options.theme")
+                == "auto"
+            )
         else:
-            assert term.lua("return package.loaded['ui_tools.statusline'] ~= nil and vim.wo.statusline ~= ''")
+            assert term.lua(
+                "return package.loaded['ui_tools.statusline'] ~= nil and vim.wo.statusline ~= ''"
+            )
         assert term.lua("return vim.fn.maparg('<leader>u]','n')") == ""
         assert term.lua("return vim.fn.maparg('<leader>u[','n')") == ""
         assert (
@@ -268,7 +307,9 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         check_startup(term)
         assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
-        assert term.lua("return package.loaded.catppuccin==nil and package.loaded.dracula==nil")
+        assert term.lua(
+            "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
+        )
         # Use the configured completion engine and native Alt-j/Tab input.
         term.lua("""
           vim.cmd.enew(); vim.bo.filetype='text'
@@ -311,10 +352,12 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
           require('theme_tools').setup(opts)
         """)
         term.keys(b" ut")
-        term.keys(b"\x1bj")
+        # The global reverse=true layout starts at the bottom; Alt-k moves up
+        # to the next item, while Alt-j still moves down on screen.
+        term.keys(b"\x1bk")
         assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
-        term.keys(b"\x1bj\x1bj\x1bk")
+        term.keys(b"\x1bk\x1bk\x1bj")
         assert term.lua("return vim.g.colors_name") == "catppuccin-mocha"
         check_shared_colors(term)
         term.keys(b"\x1b")
@@ -339,12 +382,18 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         term.keys(b" ut")
         wait_preview(term, "theme-tools-mocha")
         term.keys(b"\x14")
-        assert term.lua("return vim.wait(5000,function() return vim.b[theme_sample_buf].theme_tools_preview_transparent==false end)")
-        assert term.lua("return require('theme_tools').palette().transparent"), "window toggle changed the host"
+        assert term.lua(
+            "return vim.wait(5000,function() return vim.b[theme_sample_buf].theme_tools_preview_transparent==false end)"
+        )
+        assert term.lua("return require('theme_tools').palette().transparent"), (
+            "window toggle changed the host"
+        )
         term.keys(b"\x14\x14\r")
         assert not term.lua("return require('theme_tools').palette().transparent")
         check_shared_colors(term)
-        assert json.loads(path.read_text())["transparency"]["theme-tools-mocha"] is False
+        assert (
+            json.loads(path.read_text())["transparency"]["theme-tools-mocha"] is False
+        )
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )
@@ -354,7 +403,10 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     try:
         check_startup(term)
         assert not term.lua("return require('theme_tools').palette().transparent")
-        assert term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg") == 0x1E1E2E
+        assert (
+            term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg")
+            == 0x1E1E2E
+        )
         check_shared_colors(term)
         term.keys(b" ut")
         wait_preview(term, "theme-tools-mocha")
@@ -375,9 +427,14 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         check_startup(term)
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
         assert term.lua("return require('theme_tools').palette().transparent")
-        assert term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg") is None
+        assert (
+            term.lua("return vim.api.nvim_get_hl(0,{name='Normal',link=false}).bg")
+            is None
+        )
         check_shared_colors(term)
-        assert term.lua("return #config_test_errors") == 0, term.lua("return config_test_errors")
+        assert term.lua("return #config_test_errors") == 0, term.lua(
+            "return config_test_errors"
+        )
     finally:
         term.close()
 print(

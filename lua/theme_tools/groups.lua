@@ -55,7 +55,7 @@ function M.open(themes, current, opts, confirm, picker)
       end,
     })
     if group == "unknown" and opts.preview_mode ~= "window" then
-      options.prompt = "Unclassified · Enter: apply · Ctrl-G: groups"
+      options.prompt = "Unclassified · Ctrl-G: groups"
     end
     return picker.open(groups[group], current, options, function(theme)
       active = nil

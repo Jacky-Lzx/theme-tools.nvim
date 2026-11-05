@@ -67,7 +67,8 @@ for backend in ("builtin", "selection_tools"):
         keys("<C-n><C-n>")
         assert lua("return vim.g.colors_name") == "habamax"
         keys("<CR>")
-        assert "Unclassified" in screen() and "mystery" in screen()
+        text = screen()
+        assert "Unclassified" in text and "mystery" in text, text
         assert lua("return vim.g.colors_name") == "habamax", "unknown themes must not auto-preview"
         keys("<CR>")
         assert lua("return vim.g.colors_name") == "evening"

@@ -3,9 +3,9 @@ local checkout = vim.env.THEME_TOOLS_SELECTION or vim.fn.fnamemodify(vim.fn.getc
 assert(vim.fn.isdirectory(checkout) == 1, "selection-tools integration requires its real checkout")
 vim.opt.rtp:append(checkout)
 local selection, themes = require("selection_tools"), require("theme_tools")
-local original_select, picker = selection.select
-selection.select = function(...)
-  picker = original_select(...)
+local original_open, picker = selection.open
+selection.open = function(...)
+  picker = original_open(...)
   return picker
 end
 local notices, changed = {}, 0

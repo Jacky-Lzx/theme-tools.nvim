@@ -91,7 +91,6 @@ function M.open(items, current, opts, prepare, apply)
     resume = false,
     multi = false,
     item_icons = false,
-    layout = require("theme_tools.picker_style").selection(opts),
     preview = { enabled = true },
     format_item = function(item)
       return "  " .. item.label
@@ -135,11 +134,13 @@ function M.open(items, current, opts, prepare, apply)
       details = {},
     },
   })
-  local ok, picker = pcall(selection.select, ordered, spec, function(item)
+  spec.items = ordered
+  spec.on_choice = function(item)
     if item then
       apply(item.name)
     end
-  end)
+  end
+  local ok, picker = pcall(selection.open, spec)
   if not ok then
     release(session)
     return nil, tostring(picker)

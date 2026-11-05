@@ -84,7 +84,6 @@ function M.open(themes, current, opts, confirm)
     multi = false,
     preview = { enabled = window_preview },
     item_icons = false,
-    layout = require("theme_tools.picker_style").selection(opts),
     keys = {
       theme_groups = opts.on_group and { "<C-g>" } or {},
       theme_transparency = opts.apply ~= false and transparency.key(opts) and { transparency.key(opts) } or {},
@@ -185,11 +184,13 @@ function M.open(themes, current, opts, confirm)
       return true
     end
   end
-  local ok, picker = pcall(selection.select, items, spec, function(theme)
+  spec.items = items
+  spec.on_choice = function(theme)
     if theme then
       confirm(theme)
     end
-  end)
+  end
+  local ok, picker = pcall(selection.open, spec)
   if not ok then
     if session.viewer then
       session.viewer:close()

@@ -286,21 +286,27 @@ require("theme_tools").setup({
 
 Install `selection-tools.nvim` as a dependency, using a version with the
 `on_change` callback. In a local lazy.nvim setup, add its checkout to `dependencies` (see
-[examples/lazy.lua](examples/lazy.lua)). `:ThemeTools` then uses a single bordered
-frame with the preview above the list and the filter at the bottom, initially
-highlighting the active theme. Moving or
-filtering updates a separate theme sample; Enter applies and saves the theme.
+[examples/lazy.lua](examples/lazy.lua)). Theme and icon selectors call
+`selection_tools.open()` and inherit its global layout, matching and navigation,
+just like `selection_tools.files()`.
+Window size, preview proportion, input placement, border and list direction follow
+your selection-tools setup. The compact `select.layout` profile is bypassed.
+The active theme is initially selected. Moving or filtering updates the theme
+sample; Enter applies and saves the theme.
 Cancelling leaves the editor unchanged. Existing selection-tools key bindings apply.
 `picker.selection` accepts per-picker layout, matcher and key overrides.
 
-Both backends and the icon selector share this frame style and proportions.
-The bottom-right counter shows the selected match and total. `picker.width` and
-`height` default to `0.98` and `0.96`: values up to `1` are screen fractions;
-larger values are cell limits for the complete frame. `preview_height = 0.6`
-allocates the upper pane. Icon picker dimensions inherit the theme picker unless
-overridden under `icons.picker`. The layout fits small terminals and resizes.
-Selection-tools navigation/matching overrides still apply; its compact
-`vim.ui.select` layout no longer changes these selectors' placement.
+`picker.selection.layout` supplies explicit per-picker overrides; omitted fields
+continue to inherit the global layout. `icons.picker.selection.layout` can
+override the icon selector independently. Neither selector passes builtin sizing
+defaults to selection-tools.
+
+The builtin backend retains its own single frame with a top preview and bottom
+filter/counter. Its `picker.width` and `height` default to `0.98` and `0.96`: values
+up to `1` are screen fractions; larger values are cell limits. Its
+`preview_height = 0.6` allocates the upper pane. Builtin icon dimensions inherit
+the theme picker unless overridden under `icons.picker`. Both backends resize to
+fit small terminals.
 
 ## Use
 
