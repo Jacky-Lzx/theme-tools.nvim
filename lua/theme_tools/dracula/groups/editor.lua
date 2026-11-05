@@ -37,7 +37,10 @@ return function(c)
     Todo = { fg = c.purple, bold = true, italic = true },
     Underlined = { fg = c.cyan, underline = true },
 
-    Cursor = { reverse = true },
+    Cursor = { fg = c.bg, bg = c.fg },
+    CursorIM = { link = "Cursor" },
+    lCursor = { link = "Cursor" },
+    TermCursor = { link = "Cursor" },
     CursorLineNr = { fg = c.fg, bold = true },
 
     SignColumn = { bg = c.bg },
