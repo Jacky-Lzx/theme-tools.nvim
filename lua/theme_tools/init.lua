@@ -196,6 +196,8 @@ function M._preview_options()
       plugins[name] = {}
     end
   end
+  local icons = vim.deepcopy(M.icons._preview_options().icons)
+  icons.default, icons.persist, icons.install.offline = M.icons.current(), false, true
   return {
     catppuccin = config.catppuccin,
     dracula = config.dracula,
@@ -204,6 +206,7 @@ function M._preview_options()
     after = config.picker.preview_after,
     plugins = plugins,
     background = vim.o.background,
+    icons = icons,
   }
 end
 

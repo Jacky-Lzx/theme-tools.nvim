@@ -17,6 +17,9 @@ function M.ensure(source, opts)
   if ready(path, source) then
     return path
   end
+  if opts.offline then
+    return nil, "Managed source is not cached: " .. source.name
+  end
   if vim.uv.fs_stat(path) then
     return nil, "Incomplete managed source: " .. path .. ". Remove this directory and retry installation"
   end

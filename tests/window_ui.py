@@ -106,6 +106,10 @@ for backend in ("builtin", "selection_tools"):
                 "Error",
                 "Floating window",
                 "Search",
+                "Files / sidebar",
+                "Tasks",
+                "[Copilot]",
+                "Statusline",
             )
         ), contents
         keys("<C-d><C-d><C-d>")

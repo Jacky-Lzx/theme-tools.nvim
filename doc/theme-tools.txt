@@ -176,6 +176,10 @@ upvalues are copied; C functions, userdata and host-only state cannot be transfe
 Errors appear in the pane without applying the theme. Enter still attempts the
 normal application; a failed application cannot be committed or saved.
 
+Samples include file/LSP icons, Copilot completion, task states and semantic
+Git/diagnostic statusline counts. Icon samples use the selected display policy and
+cached provider files; previewing never downloads icons or changes host icon state.
+
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
 on_change API). Theme and icon pickers call selection_tools.open(), inheriting the
 global layout/matcher/keys like selection_tools.files(). Window dimensions, preview
@@ -355,9 +359,11 @@ Colors are #rrggbb strings. UI background fields may be "NONE". ui.search_fg
 may also be "NONE": preserve the underlying text color for background-only
 search highlights. Pass it through to nvim_set_hl rather than substituting a color.
 The opaque palette.bg is separate from the actual ui.bg used for transparency.
+sidebar_bg inherits the editor background unless ThemeToolsSidebar defines one.
+float_bg and menu_bg follow NormalFloat/Pmenu independently, including transparency.
 
   palette: bg, fg, red, orange, yellow, green, cyan, blue, purple, pink
-  ui: fg, bg, float_fg, float_bg, muted, subtle, border, accent,
+  ui: fg, bg, sidebar_bg, float_fg, float_bg, menu_fg, menu_bg, muted, subtle, border, accent,
       selection_fg, selection_bg, search_fg, search_bg, cursorline_bg
   diagnostic: error, warn, info, hint, ok
   git: add, change, delete

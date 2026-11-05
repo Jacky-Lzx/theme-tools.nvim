@@ -108,13 +108,16 @@ keep its existing standard-highlight behavior when theme-tools is unavailable.
 | --- | --- |
 | `name`, `background`, `transparent` | Applied colorscheme name, `dark`/`light`, and whether `ui.bg` is `NONE` |
 | `palette` | Opaque `bg`, `fg`, `red`, `orange`, `yellow`, `green`, `cyan`, `blue`, `purple`, `pink` |
-| `ui` | `fg`, `bg`, `float_fg`, `float_bg`, `muted`, `subtle`, `border`, `accent`, `selection_fg`, `selection_bg`, `search_fg`, `search_bg`, `cursorline_bg` |
+| `ui` | `fg`, `bg`, `sidebar_bg`, `float_fg`, `float_bg`, `menu_fg`, `menu_bg`, `muted`, `subtle`, `border`, `accent`, `selection_fg`, `selection_bg`, `search_fg`, `search_bg`, `cursorline_bg` |
 | `diagnostic` | `error`, `warn`, `info`, `hint`, `ok` |
 | `git` | `add`, `change`, `delete` |
 
 Colors are `#rrggbb` strings, accepted directly by `nvim_set_hl`. UI backgrounds
 may be `"NONE"`; `ui.search_fg = "NONE"` preserves underlying text colors when
 Search only adds a background. `palette.bg` always supplies an opaque base for blending.
+Editor, sidebar, floating-window and menu backgrounds have separate roles.
+Sidebar defaults to the editor background; floats and menus follow `NormalFloat`
+and `Pmenu`. Menu borders share menu backgrounds; documentation borders use float backgrounds.
 Mocha, Catppuccin and Dracula have adapters. Other themes use standard Neovim
 highlights and complete fallback values. Adapters never initialize an inactive
 provider. Semantic roles reflect the final standard highlights, including user

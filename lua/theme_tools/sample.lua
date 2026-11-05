@@ -40,6 +40,52 @@ local lines = {
   "  Enter: apply theme   Esc: cancel   Ctrl-D/U: scroll",
 }
 
+-- Built in the isolated worker with its theme and the host's icon policy.
+function M.build(c, icons)
+  local text, spans = vim.deepcopy(lines), {}
+  local function icon(row, category, name, suffix)
+    local glyph, group = icons.get(category, name)
+    local prefix = glyph ~= "" and glyph .. " " or ""
+    text[row] = "    " .. prefix .. suffix
+    if glyph ~= "" then
+      spans[#spans + 1] = { row = row, first = 4, last = 4 + #glyph, group = group }
+    end
+  end
+  for offset, name in ipairs({ "error", "warn", "info", "hint" }) do
+    icon(14 + offset, "diagnostic", name, lines[14 + offset]:gsub("^%s+", ""))
+  end
+  icon(21, "lsp", "Function", "greet(name)             Function  [LSP]")
+  icon(22, "lsp", "Variable", "enabled                 Variable  [Buffer]")
+  text[23] = "    print(name)             Text      [Copilot]"
+  text[34], text[35] = "", "  Files / sidebar"
+  icon(36, "directory", "src", "src/")
+  icon(37, "file", "init.lua", "init.lua")
+  icon(38, "file", "main.rs", "main.rs")
+  text[39], text[40] = "", "  Tasks"
+  icon(41, "task", "running", "Build running")
+  icon(42, "task", "success", "Tests passed")
+  icon(43, "task", "failure", "Lint failed")
+  text[44], text[45] = "", "  Statusline"
+  text[46] = "  NORMAL  main  +12 ~3 -2  E1 W2 I1 H3   init.lua   12:4"
+  text[47], text[48] = "", "  Enter: apply theme   Esc: cancel   Ctrl-D/U: scroll"
+  return {
+    lines = text,
+    spans = spans,
+    groups = {
+      ThemeToolsSampleMenu = { fg = c.ui.menu_fg, bg = c.ui.menu_bg },
+      ThemeToolsSampleSidebar = { fg = c.ui.fg, bg = c.ui.sidebar_bg },
+      ThemeToolsSampleCopilot = { fg = c.palette.purple },
+      ThemeToolsSampleStatus = { fg = c.ui.fg, bg = c.palette.bg },
+      ThemeToolsSampleNormalMode = { fg = c.palette.bg, bg = c.ui.accent, bold = true },
+      ThemeToolsSampleInsertMode = { fg = c.palette.bg, bg = c.palette.green, bold = true },
+      ThemeToolsSampleVisualMode = { fg = c.palette.bg, bg = c.palette.purple, bold = true },
+      ThemeToolsSampleGitAdd = { fg = c.git.add },
+      ThemeToolsSampleGitChange = { fg = c.git.change },
+      ThemeToolsSampleGitDelete = { fg = c.git.delete },
+    },
+  }
+end
+
 function M.draw(buf, win, theme, frame, err)
   if not api.nvim_buf_is_valid(buf) or not api.nvim_win_is_valid(win) then
     return
@@ -84,9 +130,12 @@ function M.draw(buf, win, theme, frame, err)
     api.nvim_set_hl(ns, "Normal", normal)
     api.nvim_set_hl(ns, "NormalNC", normal)
     api.nvim_set_hl(ns, "NormalFloat", normal)
+    for name, attrs in pairs(frame.sample and frame.sample.groups or {}) do
+      api.nvim_set_hl(ns, name, attrs)
+    end
     previous = frame.highlights
   end
-  local text = vim.deepcopy(lines)
+  local text = vim.deepcopy(frame and frame.sample and frame.sample.lines or lines)
   text[1] = "  " .. (theme.label or theme.name) .. (frame and (" · " .. frame.background) or "")
   if frame then
     text[1] = text[1] .. " · transparent " .. (frame.transparent and "on" or "off")
@@ -123,10 +172,10 @@ function M.draw(buf, win, theme, frame, err)
   end
   line(1, "Title")
   if not err then
-    line(2, "StatusLine")
-    span(2, "NORMAL", "Function")
-    span(2, "INSERT", "String")
-    span(2, "VISUAL", "Statement")
+    line(2, frame and frame.sample and "ThemeToolsSampleStatus" or "StatusLine")
+    span(2, "NORMAL", frame and frame.sample and "ThemeToolsSampleNormalMode" or "Function")
+    span(2, "INSERT", frame and frame.sample and "ThemeToolsSampleInsertMode" or "String")
+    span(2, "VISUAL", frame and frame.sample and "ThemeToolsSampleVisualMode" or "Statement")
     line(4, "Comment")
     span(5, "local", "Keyword")
     span(5, "function", "Keyword")
@@ -149,8 +198,47 @@ function M.draw(buf, win, theme, frame, err)
       line(14 + offset, "Diagnostic" .. kind)
     end
     line(20, "Title")
+    if frame and frame.sample then
+      line(21, "ThemeToolsSampleMenu")
+    end
     line(21, "PmenuSel")
-    line(22, "Pmenu")
+    line(22, frame and frame.sample and "ThemeToolsSampleMenu" or "Pmenu")
+    if frame and frame.sample then
+      line(23, "ThemeToolsSampleMenu")
+      span(23, "print(name)", "ThemeToolsSampleCopilot")
+      span(23, "Text", "ThemeToolsSampleCopilot")
+      span(23, "[Copilot]", "ThemeToolsSampleCopilot")
+      line(35, "Title")
+      for row = 36, 38 do
+        line(row, "ThemeToolsSampleSidebar")
+      end
+      line(40, "Title")
+      line(41, "DiagnosticInfo")
+      line(42, "DiagnosticOk")
+      line(43, "DiagnosticError")
+      line(45, "Title")
+      line(46, "ThemeToolsSampleStatus")
+      span(46, "NORMAL", "ThemeToolsSampleNormalMode")
+      for token, group in pairs({
+        ["+12"] = "ThemeToolsSampleGitAdd",
+        ["~3"] = "ThemeToolsSampleGitChange",
+        ["-2"] = "ThemeToolsSampleGitDelete",
+        E1 = "DiagnosticError",
+        W2 = "DiagnosticWarn",
+        I1 = "DiagnosticInfo",
+        H3 = "DiagnosticHint",
+      }) do
+        span(46, token, group)
+      end
+      line(48, "Comment")
+      for _, mark in ipairs(frame.sample.spans) do
+        api.nvim_buf_set_extmark(buf, marks, mark.row - 1, mark.first, {
+          end_col = mark.last,
+          hl_group = mark.group,
+          priority = 120,
+        })
+      end
+    end
     line(24, "DiffAdd")
     line(25, "DiffChange")
     line(26, "DiffDelete")

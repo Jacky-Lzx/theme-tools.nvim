@@ -25,6 +25,7 @@ fi
 python3 tests/ui.py
 if [ -d ../completion-tools.nvim ]; then
   python3 tests/dracula_ui.py
+  python3 tests/surfaces_ui.py
 fi
 python3 tests/palette_ui.py
 if [ -d ../selection-tools.nvim ]; then

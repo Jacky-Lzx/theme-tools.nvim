@@ -27,6 +27,7 @@ function M.setup(options, parent, id)
     dracula = options.dracula,
     palette = options.palette,
     install = options.install,
+    icons = options.icons,
   })
 end
 
@@ -55,12 +56,15 @@ local function render(request)
       end
       canvas = palette and tonumber(palette:sub(2), 16) or (vim.o.background == "light" and 0xf5f5f5 or 0x20202a)
     end
+    local palette = require("theme_tools").palette()
+    local sample = require("theme_tools.sample").build(palette, require("theme_tools.icons"))
     return {
       highlights = vim.api.nvim_get_hl(0, {}),
       background = vim.o.background,
       canvas = canvas,
       normal = normal,
       transparent = normal.bg == nil,
+      sample = sample,
     }
   end)
   send(request.id, ok and result or nil, not ok and tostring(result) or nil)

@@ -50,8 +50,11 @@ function M.resolve(base)
     ui = {
       fg = h("Normal", "fg") or p.fg,
       bg = bg or "NONE",
+      sidebar_bg = h("ThemeToolsSidebar", "bg") or bg or "NONE",
       float_fg = h("NormalFloat", "fg") or p.fg,
       float_bg = h("NormalFloat", "bg") or "NONE",
+      menu_fg = h("Pmenu", "fg") or p.fg,
+      menu_bg = h("Pmenu", "bg") or "NONE",
       muted = muted,
       subtle = h("NonText", "fg") or muted,
       border = h("FloatBorder", "fg") or muted,

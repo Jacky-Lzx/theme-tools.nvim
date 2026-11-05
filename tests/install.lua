@@ -42,10 +42,14 @@ local source = {
   entrypoint = "lua/catppuccin/init.lua",
 }
 local opts = { root = root .. "/managed", timeout = 5000 }
+local cached_only = vim.tbl_extend("force", opts, { offline = true })
+assert(not installer.ensure(source, cached_only))
+assert(vim.fn.isdirectory(opts.root) == 0, "offline preview created an installation")
 local path, err = installer.ensure(source, opts)
 assert(path, err)
 assert(vim.fn.readfile(path .. "/.theme-tools-commit")[1] == source.commit)
 assert(vim.fn.filereadable(path .. "/" .. source.entrypoint) == 1)
+assert(installer.ensure(source, cached_only) == path)
 -- An installed revision must be reusable with neither a reachable remote nor Git.
 local environment_path = vim.env.PATH
 vim.env.PATH = ""

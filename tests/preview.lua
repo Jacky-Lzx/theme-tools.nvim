@@ -6,6 +6,7 @@ require("theme_tools").setup({
   catppuccin = false,
   dracula = false,
   default = "habamax",
+  icons = { default = "ascii" },
   themes = { "habamax" },
   picker = {
     preview_after = function()
@@ -15,6 +16,9 @@ require("theme_tools").setup({
   },
 })
 local original = colors.snapshot()
+local preview_options = require("theme_tools")._preview_options()
+assert(preview_options.icons.install.offline and preview_options.icons.default == "ascii")
+assert(not require("theme_tools.icons")._preview_options().icons.install.offline, "preview mutated live icon options")
 local palettes = 0
 require("theme_tools").on_change("preview-test", function()
   palettes = palettes + 1
@@ -32,6 +36,10 @@ assert(
 )
 assert(not failure, failure)
 assert(frame.background == "light" and frame.highlights.PreviewOnly.fg == 0x123abc)
+assert(frame.sample.lines[37]:find("f init.lua", 1, true))
+assert(frame.sample.lines[41]:find("R Build running", 1, true))
+assert(frame.sample.lines[23]:find("[Copilot]", 1, true))
+assert(not package.loaded["nvim-web-devicons"], "sample loaded icons into the host")
 assert(not vim.g.preview_after_called, "worker executed configuration in host")
 assert(palettes == 1, "isolated preview notified host subscribers")
 assert(vim.deep_equal(original, colors.snapshot()), "isolated preview changed host colors")

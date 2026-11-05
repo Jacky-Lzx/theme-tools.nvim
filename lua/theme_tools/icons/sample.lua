@@ -59,6 +59,7 @@ local samples = {
     names = { "error", "warn", "info", "hint", "ok", "debug", "trace" },
   },
   { title = "Git", category = "git", names = { "added", "modified", "removed", "branch", "conflict", "untracked" } },
+  { title = "Tasks", category = "task", names = { "running", "stopping", "success", "failure", "stopped" } },
   {
     title = "UI",
     category = "ui",
