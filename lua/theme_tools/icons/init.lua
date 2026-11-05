@@ -172,6 +172,9 @@ function M.get(category, name)
       end
     end
   end
+  if category == "git" and (name == "added" or name == "modified" or name == "removed") then
+    require("theme_tools.icons.highlights").setup()
+  end
   return catalog.get(category, name, selected == "ascii")
 end
 

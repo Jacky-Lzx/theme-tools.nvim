@@ -9,6 +9,7 @@ export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/core.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/install.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icons.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/git_icons.lua
 if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-tools.nvim ] && [ -d ../notification-tools.nvim ] && [ -d ../selection-tools.nvim ]; then
   "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/consumers.lua
 fi
@@ -28,6 +29,7 @@ if [ -d ../completion-tools.nvim ]; then
   python3 tests/surfaces_ui.py
 fi
 python3 tests/palette_ui.py
+python3 tests/git_icons_ui.py
 if [ -d ../selection-tools.nvim ]; then
   python3 tests/search_ui.py
 fi

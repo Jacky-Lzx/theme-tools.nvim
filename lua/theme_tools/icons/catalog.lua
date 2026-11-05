@@ -31,9 +31,9 @@ M.values = {
     stopping = { "󰜺", "S", "DiagnosticWarn" },
   },
   git = {
-    added = { "", "+", "DiffAdd" },
-    modified = { "", "~", "DiffChange" },
-    removed = { "", "-", "DiffDelete" },
+    added = { "", "+", "ThemeToolsIconGitAdd" },
+    modified = { "", "~", "ThemeToolsIconGitChange" },
+    removed = { "", "-", "ThemeToolsIconGitDelete" },
     branch = { "", "@", "Identifier" },
     conflict = { "", "!", "DiagnosticWarn" },
     untracked = { "", "?", "DiagnosticInfo" },

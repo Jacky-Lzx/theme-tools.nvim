@@ -289,6 +289,8 @@ semantic defaults. Unknown names return the category default with fallback=true;
 unknown categories raise an error.
 Diagnostic names: error/warn/info/hint.
 Git names: added/modified/removed/branch/conflict/untracked.
+Added/modified/removed use foreground-only ThemeToolsIconGitAdd/Change/Delete
+defaults derived from the shared Git palette, preserving the surrounding surface.
 Task names: running/stopping/success/failure/stopped. Failure and success reuse
 the error/ok symbols, so task counters and diagnostic/notification states agree.
 UI names: search/close/check/collapsed/expanded/loading.
