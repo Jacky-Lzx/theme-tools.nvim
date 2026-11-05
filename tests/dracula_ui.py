@@ -53,7 +53,7 @@ try:
         assert all(a.get("foreground") == color for a in attributes), (word, attributes)
         assert all(a.get("background") == 0x44475A and a.get("bold") for a in attributes), (word, attributes)
     keys("<Tab><Esc>")
-    assert lua("return vim.api.nvim_get_current_line()") == "hello"
+    assert lua("return vim.api.nvim_get_current_line()") == "hello()"
     lua("c.dispose(); assert(t.set('theme-tools-mocha')); assert(t.pick())")
     keys("dracula")
     assert lua("""

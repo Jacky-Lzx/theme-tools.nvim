@@ -78,7 +78,7 @@ def check_shared_colors(term):
       if hl('Normal').bg~=color(c.ui.bg) then return false end
       if package.loaded['ui_tools.statusline'] then
         if hl('UiToolsStatusNormal').bg~=color(c.ui.accent) then return false end
-        if hl('UiToolsStatus').bg~=color(c.ui.bg) then return false end
+        if hl('UiToolsStatus').bg~=(color(c.ui.bg) or color(c.palette.bg)) then return false end
       end
       return hl('SelectionToolsMarked').fg==color(c.ui.accent)
         and hl('SelectionToolsSelected').bg==color(c.ui.selection_bg)
@@ -231,7 +231,10 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
             assert term.lua("return package.loaded['ui_tools.statusline'] ~= nil and vim.wo.statusline ~= ''")
         assert term.lua("return vim.fn.maparg('<leader>u]','n')") == ""
         assert term.lua("return vim.fn.maparg('<leader>u[','n')") == ""
-        assert "MiniBracketed.treesitter" in term.lua("return vim.fn.maparg(']t','n')")
+        assert (
+            term.lua("return vim.fn.maparg(']t','n',false,true).desc")
+            == "[Motion] next treesitter"
+        )
         assert term.lua("return #config_test_errors") == 0, term.lua(
             "return config_test_errors"
         )

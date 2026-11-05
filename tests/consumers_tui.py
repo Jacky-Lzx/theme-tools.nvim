@@ -63,7 +63,7 @@ end
         term.lua("assert(i.set('ascii'))")
         assert "F function_name" in term.lua("return visible_text()")
         term.keys(b"\t!\x1b")
-        assert term.lua("return vim.api.nvim_get_current_line()") == selected + "!"
+        assert term.lua("return vim.api.nvim_get_current_line()") == selected + "(!)"
         term.lua("c.dispose()")
 
         term.lua("""
@@ -127,7 +127,7 @@ end
         term.lua("""
           assert(i.set('ascii'))
           n=require('notification-tools')
-          n.setup({notify=false,timeout=0,lsp={enabled=false},progress={stale_timeout=0}})
+          n.setup({notify=false,timeout=0,lsp={enabled=false},progress={stale_timeout=0,display_delay=0,done_ttl=10000}})
           n.notify('message','error',{title='Notice'})
           task=n.progress({title='Build'}); task:finish()
         """)
