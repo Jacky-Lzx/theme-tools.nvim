@@ -14,7 +14,7 @@ local function definitions()
   return result
 end
 local rendered = definitions()
-cat.setup(vim.deepcopy(opts))
+cat.setup(require("theme_tools.providers.integrations").with_managed_icons(cat, vim.deepcopy(opts)))
 assert(vim.deep_equal(actual, cat.options.integrations), "fast integrations differ from upstream")
 assert(vim.deep_equal(rendered, definitions()), "fast theme definitions differ from upstream")
 assert(require("theme_tools").install())

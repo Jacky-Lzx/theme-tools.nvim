@@ -22,9 +22,10 @@ function M.load(install, opts)
   end
   local ok, reason = pcall(function()
     local catppuccin = require("catppuccin")
-    local resolved = opts
+    local integrations = require("theme_tools.providers.integrations")
+    local resolved = integrations.with_managed_icons(catppuccin, opts)
     if catppuccin.default_options and opts.auto_integrations ~= false then
-      resolved = require("theme_tools.providers.integrations").resolve(catppuccin, opts)
+      resolved = integrations.resolve(catppuccin, resolved)
     end
     catppuccin.setup(resolved)
   end)

@@ -256,6 +256,10 @@ upstream modules loaded elsewhere are reused until restart. icons.sources.mini
 and .devicons accept url/commit/ref for mirrors/pins; commit is a full SHA, ref
 is used by explicit updates. A saved update takes precedence over the initial pin.
 Timeout bounds each Git resolution or download operation in milliseconds.
+
+Managed mini.icons participates in Catppuccin's automatic theme integrations even
+without a separate plugin-manager entry. Explicit integrations.mini=false,
+integrations.mini.enabled=false and auto_integrations=false remain respected.
 >
   local icons = require("theme_tools").icons -- or require("theme_tools.icons")
   local icon, hl, is_fallback = icons.get("file", "/project/init.lua")

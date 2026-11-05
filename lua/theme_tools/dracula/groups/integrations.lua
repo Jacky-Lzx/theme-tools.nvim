@@ -255,6 +255,7 @@ return function(c)
     MiniIconsAzure = { fg = c.bright_cyan },
     MiniIconsBlue = { fg = c.bright_blue },
     MiniIconsCyan = { fg = c.cyan },
+    MiniIconsGreen = { fg = c.green },
     MiniIconsGrey = { fg = c.white },
     MiniIconsOrange = { fg = c.orange },
     MiniIconsPurple = { fg = c.purple },

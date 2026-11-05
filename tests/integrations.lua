@@ -90,4 +90,29 @@ package.path, package.cpath = original_path, original_cpath
 if has_pack then
   vim.pack.get = pack_get
 end
+-- Managed sources must participate even without a package manager or module load.
+local original_icons = package.loaded["theme_tools.icons"]
+package.loaded["theme_tools.icons"] = {
+  list = function()
+    return { { name = "mini" } }
+  end,
+}
+local managed = integrations.with_managed_icons(catppuccin(), {})
+assert(managed.integrations.mini.enabled)
+assert(not package.loaded["mini.icons"], "integration detection eagerly loaded icons")
+for _, mini in ipairs({ false, true, { enabled = false }, { indentscope_color = "blue" } }) do
+  local original_options = { integrations = { mini = mini } }
+  local copy = vim.deepcopy(original_options)
+  managed = integrations.with_managed_icons(catppuccin(), original_options)
+  assert(vim.deep_equal(original_options, copy), "managed detection mutated options")
+  if type(mini) == "table" then
+    assert(managed.integrations.mini.enabled == (mini.enabled ~= false))
+    assert(managed.integrations.mini.indentscope_color == mini.indentscope_color)
+  else
+    assert(managed.integrations.mini == mini)
+  end
+end
+local disabled = { auto_integrations = false }
+assert(integrations.with_managed_icons(catppuccin(), disabled) == disabled)
+package.loaded["theme_tools.icons"] = original_icons
 print("integrations: inventory, native packages, option precedence and upstream fallbacks passed")

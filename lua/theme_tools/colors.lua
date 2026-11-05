@@ -64,6 +64,9 @@ function M.apply(theme)
     end
     if theme.background and theme.background ~= vim.o.background then
       -- Avoid reloading the previous scheme when changing light/dark modes.
+      -- Some schemes clear only when colors_name is set. Clear first so groups
+      -- absent from the next theme cannot keep the previous theme's colors.
+      vim.cmd("highlight clear")
       vim.g.colors_name = nil
       vim.o.background = theme.background
     end

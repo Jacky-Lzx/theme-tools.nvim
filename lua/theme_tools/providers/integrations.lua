@@ -1,5 +1,37 @@
 local M = {}
 
+-- Managed icon sources are deliberately absent from package-manager inventories.
+-- Include them without loading/downloading the provider or unrelated minis.
+function M.with_managed_icons(catppuccin, opts)
+  local auto = opts.auto_integrations
+  if auto == nil then
+    auto = catppuccin.default_options and catppuccin.default_options.auto_integrations
+  end
+  local icons = package.loaded["theme_tools.icons"]
+  if
+    not auto
+    or type(icons) ~= "table"
+    or type(icons.list) ~= "function"
+    or opts.integrations ~= nil and type(opts.integrations) ~= "table"
+  then
+    return opts
+  end
+  for _, provider in ipairs(icons.list()) do
+    if provider.name == "mini" then
+      local resolved = vim.deepcopy(opts)
+      resolved.integrations = resolved.integrations or {}
+      local mini = resolved.integrations.mini
+      if mini == nil then
+        resolved.integrations.mini = { enabled = true }
+      elseif type(mini) == "table" and mini.enabled == nil then
+        mini.enabled = true
+      end
+      return resolved
+    end
+  end
+  return opts
+end
+
 -- Lazy has already resolved its plugin inventory. Avoid loading other package
 -- managers merely to discover that they are absent. Unrecognized environments
 -- retain Catppuccin's normal detector.
