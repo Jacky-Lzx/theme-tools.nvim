@@ -65,7 +65,14 @@ assert(
   "icon worker did not respond"
 )
 assert(not failure, failure)
-assert(frame.name == "devicons" and frame.count >= 100 and #frame.groups == 7)
+assert(frame.name == "devicons" and frame.count >= 100)
+assert(vim.deep_equal(
+  vim.tbl_map(function(group)
+    return group.title
+  end, frame.groups),
+  { "Files", "Directories", "Diagnostics", "Git", "Tasks", "UI", "LSP types", "Operating systems" }
+))
+assert(#frame.groups[5].entries == 5, "task preview must include running, stopping and terminal states")
 assert(frame.groups[1].entries[1].icon == "λ" and frame.highlights.PreviewLua.fg == 0x123abc)
 assert(not package.loaded["nvim-web-devicons"] and not vim.g.icon_worker_setup, "provider setup ran in host")
 assert(icons.current() == "ascii" and events == 1)
