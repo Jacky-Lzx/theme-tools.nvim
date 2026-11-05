@@ -113,7 +113,8 @@ keep its existing standard-highlight behavior when theme-tools is unavailable.
 | `git` | `add`, `change`, `delete` |
 
 Colors are `#rrggbb` strings, accepted directly by `nvim_set_hl`. UI backgrounds
-may be `"NONE"`; `palette.bg` always supplies an opaque theme base for blending.
+may be `"NONE"`; `ui.search_fg = "NONE"` preserves underlying text colors when
+Search only adds a background. `palette.bg` always supplies an opaque base for blending.
 Mocha, Catppuccin and Dracula have adapters. Other themes use standard Neovim
 highlights and complete fallback values. Adapters never initialize an inactive
 provider. Semantic roles reflect the final standard highlights, including user

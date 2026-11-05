@@ -19,8 +19,11 @@ local function validate(value, reference, path)
     elseif type(expected) == "string" and path ~= "palette" then
       assert(
         type(actual) == "string"
-          and (actual:match("^#%x%x%x%x%x%x$") or actual == "NONE" and path == "palette.ui" and key:match("bg$")),
-        name .. " must be #rrggbb (or NONE for a background)"
+          and (
+            actual:match("^#%x%x%x%x%x%x$")
+            or actual == "NONE" and path == "palette.ui" and (key:match("bg$") or key == "search_fg")
+          ),
+        name .. " must be #rrggbb (or NONE for a background/search foreground)"
       )
     else
       assert(type(actual) == type(expected), name .. " has an invalid type")

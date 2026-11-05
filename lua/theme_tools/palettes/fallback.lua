@@ -58,7 +58,8 @@ function M.resolve(base)
       accent = h("Function", "fg") or p.blue,
       selection_fg = h("Visual", "fg") or p.fg,
       selection_bg = h("Visual", "bg") or p.purple,
-      search_fg = h("Search", "fg") or p.bg,
+      -- A background-only Search deliberately preserves the text underneath.
+      search_fg = h("Search", "fg") or "NONE",
       search_bg = h("Search", "bg") or p.yellow,
       cursorline_bg = h("CursorLine", "bg") or "NONE",
     },

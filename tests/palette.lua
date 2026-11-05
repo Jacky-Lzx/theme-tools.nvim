@@ -20,12 +20,14 @@ assert(c.name == "theme-tools-mocha" and c.background == "dark" and c.transparen
 assert(c.ui.bg == "NONE" and c.palette.bg == "#1e1e2e")
 assert(c.palette.blue == "#89b4fa" and c.palette.purple == "#cba6f7")
 assert(c.ui.selection_bg == "#6c7086" and c.diagnostic.error == "#f38ba8")
+assert(c.ui.search_fg == "NONE", "background-only Search must preserve text foregrounds")
 assert(not package.loaded.catppuccin and not package.loaded.dracula)
 -- Builtin Added/Removed defaults must not mask each theme's explicit diff colors.
 assert(c.git.add == "#a6e3a1" and c.git.delete == "#f38ba8")
 assert(themes.set("theme-tools-dracula"))
 local dracula = themes.palette()
 assert(dracula.git.add == "#50fa7b" and dracula.git.delete == "#ff5555")
+assert(dracula.ui.search_fg == "#191a21", "explicit search foreground must survive")
 assert(themes.set("theme-tools-mocha"))
 c.ui.accent = "#000000"
 assert(themes.palette().ui.accent ~= "#000000", "palette() leaked mutable state")
@@ -101,7 +103,7 @@ assert(#other == before + 1, "rollback left stale events queued")
 
 -- Global and per-theme overrides compose, and survive repeated setup calls.
 opts.palette = {
-  overrides = { ui = { accent = "#123456" } },
+  overrides = { ui = { accent = "#123456", search_fg = "NONE" } },
   themes = {
     ["theme-tools-mocha"] = function(value)
       assert(value.ui.accent == "#123456")
@@ -112,6 +114,7 @@ opts.palette = {
 themes.setup(opts)
 c = themes.palette()
 assert(c.ui.accent == "#123456" and c.ui.muted == "#654321")
+assert(c.ui.search_fg == "NONE", "inherited search foreground override was rejected")
 assert(other[#other].ui.muted == "#654321", "setup lost subscriptions")
 opts.palette.overrides = { ui = { accent = "invalid" } }
 themes.setup(opts)

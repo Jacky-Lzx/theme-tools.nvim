@@ -27,6 +27,9 @@ if [ -d ../completion-tools.nvim ]; then
   python3 tests/dracula_ui.py
 fi
 python3 tests/palette_ui.py
+if [ -d ../selection-tools.nvim ]; then
+  python3 tests/search_ui.py
+fi
 python3 tests/transparency_ui.py
 python3 tests/selection_ui.py
 python3 tests/groups_ui.py

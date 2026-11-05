@@ -345,7 +345,9 @@ to follow colorscheme changes rather than holding a fixed theme palette.
 SHARED PALETTE                                        *theme-tools-palette*
 
 palette() returns {name, background, transparent, palette, ui, diagnostic, git}.
-All colors are #rrggbb strings. Only ui background fields may be "NONE".
+Colors are #rrggbb strings. UI background fields may be "NONE". ui.search_fg
+may also be "NONE": preserve the underlying text color for background-only
+search highlights. Pass it through to nvim_set_hl rather than substituting a color.
 The opaque palette.bg is separate from the actual ui.bg used for transparency.
 
   palette: bg, fg, red, orange, yellow, green, cyan, blue, purple, pink
