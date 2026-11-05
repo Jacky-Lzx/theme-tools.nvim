@@ -121,6 +121,14 @@ function M.current()
   return selected
 end
 
+---Provider status without preparing, downloading or loading a provider.
+function M.info()
+  local value = descriptor()
+  value.loaded = loaded[selected] ~= nil
+  value.error = failures[selected]
+  return value
+end
+
 function M._preview_options()
   return {
     icons = {

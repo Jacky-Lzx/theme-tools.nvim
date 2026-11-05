@@ -335,6 +335,14 @@ The selection-tools backend uses its configured matching and key bindings.
 | Ctrl-T | Toggle transparency for the selected theme; Enter applies and remembers it |
 | `:ThemeTools catppuccin-latte` | Apply a theme by its registered name |
 | `:ThemeToolsNext` / `:ThemeToolsPrev` | Cycle the configured order, wrapping at the ends |
+| `:ThemeToolsInfo [highlight]` | Inspect the theme, icon provider, final semantic colors and global highlight links |
+
+The information report opens in a scratch split. `r` re-reads it; `q` or Escape
+closes it. An optional highlight name narrows the link/attribute section, with
+native highlight completion. Undefined groups and link cycles are reported.
+Inspection preserves the current theme, unsaved buffers and saved preferences;
+it does not prepare or download icon providers. The same copied data is available
+as `require("theme_tools").info({ groups = { "NormalFloat" } })`.
 
 Builtin picker navigation stops at the first and last match. Leaving or closing the
 picker cancels it. The picker fits terminal resizes and closes when space is too

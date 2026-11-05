@@ -328,6 +328,7 @@ API                                                   *theme-tools-api*
   themes.list()                     -- copied list in picker/cycling order
   themes.register({ name = "night", colorscheme = "habamax" })
   themes.palette()                  -- copied current semantic colors
+  themes.info({groups={"Normal"}})   -- copied diagnostic snapshot
   themes.on_change("plugin-id", fn)  -- immediate subscription; returns cleanup
   themes.off_change("plugin-id")    -- remove a subscription
   themes.refresh_palette()          -- refresh after manual highlight edits
@@ -353,6 +354,26 @@ live mode they also run during preview and restoration. ThemeToolsChanged is emi
 when committing a selection (including startup restore/default), never merely
 for previews or cancellation. Use an adaptive statusline theme if you want it
 to follow colorscheme changes rather than holding a fixed theme palette.
+
+DIAGNOSTICS                                           *:ThemeToolsInfo*
+
+:ThemeToolsInfo [highlight] opens a read-only scratch split with the registered
+theme ID, applied colorscheme, background/transparency, icon provider status,
+final semantic palette and global highlight links/attributes. The optional
+highlight name has native completion and narrows the highlight section.
+Undefined groups and link cycles are reported without creating missing groups.
+Press r to re-read the report; q or Escape closes it and returns to the source.
+It does not apply themes, refresh palette subscribers, save preferences, or
+prepare/download icon providers. After manual highlight edits, explicitly call
+refresh_palette() if the semantic roles should also change.
+
+info({groups={...}}) returns copied {theme, icons, palette, highlights} data.
+theme contains id, colorscheme, background and transparent; id/colorscheme can
+be nil for an unregistered/default theme. icons contains name, enabled, style,
+loaded and an optional provider error. Each highlights entry contains name,
+chain, attributes and status (defined/undefined/cycle). With no groups option,
+the report includes common editor, popup and local-plugin groups.
+icons.info() returns only the provider descriptor/status without loading it.
 
 SHARED PALETTE                                        *theme-tools-palette*
 
@@ -423,8 +444,8 @@ or unrelated editor options. Existing terminal jobs may retain their own colors.
 The picker exits Insert mode when it closes and leaves source text unchanged.
 
 The plugin loads no themes or mappings just from require("theme_tools"). Normal
-plugin loading installs :ThemeTools, :ThemeToolsNext, :ThemeToolsPrev and
-:ThemeToolsInstall. setup() also installs them and is required on startup to
-restore saved choices.
+plugin loading installs :ThemeTools, :ThemeToolsNext, :ThemeToolsPrev,
+:ThemeToolsInstall and :ThemeToolsInfo. setup() also installs them and is
+required on startup to restore saved choices.
 
 vim:tw=78:ts=8:noet:ft=help:norl:

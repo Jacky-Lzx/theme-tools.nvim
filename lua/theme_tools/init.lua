@@ -50,6 +50,11 @@ function M.palette()
   return require("theme_tools.palette").get()
 end
 
+---Read-only diagnostic snapshot; opts.groups optionally selects highlight groups.
+function M.info(opts)
+  return require("theme_tools.info").snapshot(opts)
+end
+
 ---Subscribe by stable ID; runs immediately and returns an unsubscribe function.
 function M.on_change(id, callback)
   return require("theme_tools.palette").on_change(id, callback)
@@ -277,6 +282,13 @@ end
 
 function M.commands()
   M.icons.commands()
+  vim.api.nvim_create_user_command("ThemeToolsInfo", function(args)
+    require("theme_tools.info").open(args.args ~= "" and { groups = { args.args } } or nil)
+  end, {
+    nargs = "?",
+    complete = "highlight",
+    desc = "Inspect theme, icons, semantic colors and highlight links",
+  })
   local function run(callback)
     local ok, err = callback()
     if not ok and err then

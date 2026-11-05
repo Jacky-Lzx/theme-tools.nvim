@@ -112,6 +112,44 @@ def wait_preview(term, name):
     assert term.lua("return vim.b[theme_sample_buf].theme_tools_preview_error") is None
 
 
+def check_info_hover(term):
+    # The personal CmdlineEnter handlers initialize completion/input highlights
+    # for any command; let that finish before checking the report's own effects.
+    term.keys(b":\x1b")
+    term.lua("""
+      require('lazy').load({plugins={'lsp-tools.nvim'}})
+      local api=vim.api
+      local c=require('theme_tools').palette()
+      local _,win=vim.lsp.util.open_floating_preview({'documentation'},'plaintext',{focus_id='textDocument/hover'})
+      assert(vim.wo[win].winhighlight:find('LspToolsHoverNormal',1,true))
+      local info=require('theme_tools').info({groups={'LspToolsHoverNormal','LspToolsHoverBorder'}})
+      local expected=c.ui.float_bg~='NONE' and tonumber(c.ui.float_bg:sub(2),16) or nil
+      for _,group in ipairs(info.highlights) do assert(group.attributes.bg==expected) end
+      api.nvim_win_close(win,true)
+      info_source_win=api.nvim_get_current_win()
+      info_original=require('theme_tools.colors').snapshot()
+    """)
+    term.keys(b":ThemeToolsInfo LspToolsHoverNormal\r")
+    assert term.lua("""
+      local text=table.concat(vim.api.nvim_buf_get_lines(0,0,-1,false),' ')
+      return not vim.bo.modifiable and text:find('LspToolsHoverNormal -> LspToolsDefaultHoverNormal',1,true)~=nil
+    """)
+    term.keys(b"rq")
+    assert term.lua("""
+      return vim.api.nvim_get_current_win()==info_source_win
+        and vim.deep_equal(require('theme_tools.colors').snapshot(),info_original)
+    """), term.lua("""
+      local now=require('theme_tools.colors').snapshot()
+      local differences={}
+      for name,value in pairs(now.highlights) do
+        if not vim.deep_equal(value,info_original.highlights[name]) then
+          differences[name]={before=info_original.highlights[name],after=value}
+        end
+      end
+      return {window=vim.api.nvim_get_current_win(),source=info_source_win,differences=differences}
+    """)
+
+
 def sample_hl(term, name):
     return term.lua(
         "return vim.api.nvim_win_call(theme_sample_win,function() local ns=vim.api.nvim_get_hl_ns({winid=theme_sample_win}); return vim.api.nvim_get_hl(ns,{name="
@@ -284,6 +322,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         check_startup(term)
         assert term.lua("return vim.g.colors_name") == "catppuccin-latte"
         check_shared_colors(term)
+        check_info_hover(term)
         remember(term)
         term.keys(b" ut")
         wait_preview(term, "catppuccin-latte")
@@ -307,6 +346,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         check_startup(term)
         assert term.lua("return vim.g.colors_name") == "theme-tools-dracula"
         check_shared_colors(term)
+        check_info_hover(term)
         assert term.lua(
             "return package.loaded.catppuccin==nil and package.loaded.dracula==nil"
         )
@@ -342,6 +382,7 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
         )
         check_backgrounds(term, False)
         check_shared_colors(term)
+        check_info_hover(term)
         # Exercise global previews using the actual configured Alt-j/Alt-k mappings.
         term.lua("""
           local plugin=require('lazy.core.config').plugins['theme-tools.nvim']
@@ -438,5 +479,5 @@ with tempfile.TemporaryDirectory(prefix="/tmp/theme-config-") as directory:
     finally:
         term.close()
 print(
-    "configured PTY: isolated samples, semantic colors, live keys, transparency toggle, confirm, cancel and restart passed"
+    "configured PTY: isolated samples, semantic colors, hover/info, live keys, transparency toggle, confirm, cancel and restart passed"
 )

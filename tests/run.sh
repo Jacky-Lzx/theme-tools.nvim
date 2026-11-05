@@ -7,6 +7,7 @@ export XDG_STATE_HOME="$test_root/state" XDG_CACHE_HOME="$test_root/cache" XDG_D
 export NVIM_LOG_FILE="$test_root/nvim.log" PYTHONDONTWRITEBYTECODE=1
 export NVIM_BIN="${NVIM_BIN:-nvim}"
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/core.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/info.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/install.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icons.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/git_icons.lua
@@ -24,6 +25,7 @@ fi
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/preview.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/icon_preview.lua
 python3 tests/ui.py
+python3 tests/info_ui.py
 if [ -d ../completion-tools.nvim ]; then
   python3 tests/dracula_ui.py
   python3 tests/surfaces_ui.py
