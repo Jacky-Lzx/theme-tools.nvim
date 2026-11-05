@@ -384,6 +384,12 @@ colors from standard highlights with complete fallbacks. No inactive provider is
 loaded. Standard highlight overrides affect semantic roles. For manual highlight
 changes outside ColorScheme, call refresh_palette(). Palette resolution is lazy.
 
+ThemeToolsAccent explicitly defines the interface accent independently of syntax.
+The independent themes use blue for Mocha and purple for Dracula. Shared Git roles
+come from ThemeToolsGitAdd/Change/Delete; GitTools signs link to the same groups.
+Override those public groups in ColorScheme and refresh_palette() after manual
+edits to update subscribed UI consumers. Unknown themes retain standard fallbacks.
+
 setup({palette={overrides=..., themes={...}}}) accepts a global partial override
 followed by an override keyed by applied colorscheme name (not registered alias).
 Each override is a partial table or function(c) returning one. Invalid values

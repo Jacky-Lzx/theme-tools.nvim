@@ -120,6 +120,10 @@ highlights and complete fallback values. Adapters never initialize an inactive
 provider. Semantic roles reflect the final standard highlights, including user
 `ColorScheme` overrides. Palette resolution stays lazy until a consumer needs it.
 
+`ThemeToolsAccent` separates interface emphasis from function syntax. Mocha uses
+blue and Dracula uses purple. `ThemeToolsGitAdd`, `ThemeToolsGitChange`, and
+`ThemeToolsGitDelete` supply shared Git colors and the corresponding GitTools signs.
+
 Global overrides apply before per-colorscheme overrides:
 
 ```lua

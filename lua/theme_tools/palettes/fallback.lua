@@ -55,7 +55,7 @@ function M.resolve(base)
       muted = muted,
       subtle = h("NonText", "fg") or muted,
       border = h("FloatBorder", "fg") or muted,
-      accent = h("Function", "fg") or p.blue,
+      accent = h("ThemeToolsAccent", "fg") or p.blue,
       selection_fg = h("Visual", "fg") or p.fg,
       selection_bg = h("Visual", "bg") or p.purple,
       -- A background-only Search deliberately preserves the text underneath.
@@ -71,9 +71,9 @@ function M.resolve(base)
       ok = h("DiagnosticOk", "fg") or p.green,
     },
     git = {
-      add = h("diffAdded", "fg") or h("Added", "fg") or p.green,
-      change = h("Changed", "fg") or p.yellow,
-      delete = h("diffRemoved", "fg") or h("Removed", "fg") or p.red,
+      add = h("ThemeToolsGitAdd", "fg") or h("diffAdded", "fg") or h("Added", "fg") or p.green,
+      change = h("ThemeToolsGitChange", "fg") or h("GitToolsChange", "fg") or h("Changed", "fg") or p.yellow,
+      delete = h("ThemeToolsGitDelete", "fg") or h("diffRemoved", "fg") or h("Removed", "fg") or p.red,
     },
   }
 end

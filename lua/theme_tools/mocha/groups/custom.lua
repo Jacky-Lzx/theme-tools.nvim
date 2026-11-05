@@ -2,9 +2,13 @@
 return function(c)
   return {
     ["CurSearch"] = { ["bg"] = c.mauve, ["fg"] = c.search_text },
-    ["GitToolsAdd"] = { ["fg"] = c.green },
-    ["GitToolsChange"] = { ["fg"] = c.yellow },
-    ["GitToolsDelete"] = { ["fg"] = c.red },
+    ["ThemeToolsAccent"] = { ["fg"] = c.blue },
+    ["ThemeToolsGitAdd"] = { ["fg"] = c.green },
+    ["ThemeToolsGitChange"] = { ["fg"] = c.yellow },
+    ["ThemeToolsGitDelete"] = { ["fg"] = c.red },
+    ["GitToolsAdd"] = { ["link"] = "ThemeToolsGitAdd" },
+    ["GitToolsChange"] = { ["link"] = "ThemeToolsGitChange" },
+    ["GitToolsDelete"] = { ["link"] = "ThemeToolsGitDelete" },
     ["HlSearchLens"] = { ["link"] = "CurSearch" },
     ["HlSearchLensNear"] = { ["bg"] = c.mauve, ["bold"] = true, ["fg"] = c.search_text },
     ["IncSearch"] = { ["link"] = "CurSearch" },
