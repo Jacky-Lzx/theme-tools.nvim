@@ -1,6 +1,6 @@
 -- Shared semantic icons also cover categories absent from individual providers.
 local M = {}
-M.categories = { "file", "extension", "filetype", "directory", "os", "lsp", "diagnostic", "git", "ui" }
+M.categories = { "file", "extension", "filetype", "directory", "os", "lsp", "diagnostic", "git", "task", "ui" }
 M.defaults = {
   file = { "󰈔", "f", "Normal" },
   extension = { "󰈔", "f", "Normal" },
@@ -10,6 +10,7 @@ M.defaults = {
   lsp = { "󰘦", "?", "Identifier" },
   diagnostic = { "󰋽", "i", "DiagnosticInfo" },
   git = { "", "g", "Normal" },
+  task = { "󰔟", "R", "DiagnosticInfo" },
   ui = { "󰋽", "?", "Normal" },
 }
 M.values = {
@@ -21,6 +22,13 @@ M.values = {
     ok = { "󰄬", "O", "DiagnosticOk" },
     debug = { "󰃤", "D", "Comment" },
     trace = { "󰙎", "T", "Comment" },
+  },
+  task = {
+    failure = { "", "F", "DiagnosticError" },
+    stopped = { "󰜺", "S", "Comment" },
+    success = { "󰄬", "O", "DiagnosticOk" },
+    running = { "󰔟", "R", "DiagnosticInfo" },
+    stopping = { "󰜺", "S", "DiagnosticWarn" },
   },
   git = {
     added = { "", "+", "DiffAdd" },

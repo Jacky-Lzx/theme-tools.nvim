@@ -240,11 +240,13 @@ end)
 an empty icon, so consumers should add padding only when the icon is nonempty.
 Categories are `file` (full path), `extension` (without a dot), `filetype`,
 `directory`, `os`, `lsp` (completion kind name, e.g. `Function`), `diagnostic`,
-`git`, and `ui`. Missing provider data uses shared semantic defaults.
+`git`, `task`, and `ui`. Missing provider data uses shared semantic defaults.
 Diagnostic names: `error`, `warn`, `info`, `hint`. Git names: `added`, `modified`,
 `removed`, `branch`, `conflict`, `untracked`. UI names: `search`, `close`, `check`,
 `collapsed`, `expanded`, `loading`. Unknown names return a category default with
 `is_fallback = true`; unknown categories are programming errors.
+Task names are `running`, `stopping`, `success`, `failure`, and `stopped`.
+Task success/failure reuse diagnostic ok/error glyphs.
 
 Overrides use `{ icon, hl?, ascii? }` per category/name. ASCII mode uses the optional
 `ascii` override or its built-in text fallback; hidden mode always returns `""`.
