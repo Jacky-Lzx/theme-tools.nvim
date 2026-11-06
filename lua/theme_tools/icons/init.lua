@@ -328,7 +328,7 @@ function M.commands()
       return name:sub(1, #prefix) == prefix
     end, config.providers)
   end
-  vim.api.nvim_create_user_command("ThemeToolsIcons", function(args)
+  require("theme_tools.user_command").create("ThemeToolsIcons", function(args)
     run(function()
       if args.args == "" then
         return M.pick()
@@ -337,12 +337,12 @@ function M.commands()
     end)
   end, { nargs = "?", complete = complete, desc = "Choose icon display/provider" })
   for command, callback in pairs({ ThemeToolsIconsNext = M.next, ThemeToolsIconsPrev = M.prev }) do
-    vim.api.nvim_create_user_command(command, function()
+    require("theme_tools.user_command").create(command, function()
       run(callback)
     end, { desc = "Cycle icon providers" })
   end
   for command, callback in pairs({ ThemeToolsIconsInstall = M.install, ThemeToolsIconsUpdate = M.update }) do
-    vim.api.nvim_create_user_command(command, function(args)
+    require("theme_tools.user_command").create(command, function(args)
       run(function()
         return callback(args.args ~= "" and args.args or nil)
       end)

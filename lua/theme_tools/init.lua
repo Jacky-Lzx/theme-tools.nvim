@@ -282,7 +282,7 @@ end
 
 function M.commands()
   M.icons.commands()
-  vim.api.nvim_create_user_command("ThemeToolsInfo", function(args)
+  require("theme_tools.user_command").create("ThemeToolsInfo", function(args)
     require("theme_tools.info").open(args.args ~= "" and { groups = { args.args } } or nil)
   end, {
     nargs = "?",
@@ -295,7 +295,7 @@ function M.commands()
       notify(err)
     end
   end
-  vim.api.nvim_create_user_command("ThemeTools", function(args)
+  require("theme_tools.user_command").create("ThemeTools", function(args)
     if args.args == "" then
       run(M.pick)
     else
@@ -318,11 +318,11 @@ function M.commands()
     end,
   })
   for command, callback in pairs({ ThemeToolsNext = M.next, ThemeToolsPrev = M.prev }) do
-    vim.api.nvim_create_user_command(command, function()
+    require("theme_tools.user_command").create(command, function()
       run(callback)
     end, { desc = "Cycle colorschemes" })
   end
-  vim.api.nvim_create_user_command("ThemeToolsInstall", function()
+  require("theme_tools.user_command").create("ThemeToolsInstall", function()
     run(M.install)
   end, { desc = "Download and load configured themes" })
 end

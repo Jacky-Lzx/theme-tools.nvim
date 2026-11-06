@@ -491,3 +491,10 @@ supplies syntax colors, semantic variables retain `@variable`, and declaration
 modifiers do not add underlines. Other filetypes keep their normal semantic groups.
 The independent generated schemes contain these definitions directly; no per-buffer
 highlight reset is needed. Palette variants reuse the same custom groups.
+
+## Command ownership
+
+Commands belong to the plugin; choose global entry keys and short aliases in
+your configuration. Registration reports same-name conflicts without replacing
+user commands. Reconfiguration refreshes only commands still owned by this
+plugin, and cleanup preserves subsequent user replacements.
