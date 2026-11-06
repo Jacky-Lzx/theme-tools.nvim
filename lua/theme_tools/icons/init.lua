@@ -180,10 +180,11 @@ function M.get(category, name)
       end
     end
   end
-  if category == "git" and (name == "added" or name == "modified" or name == "removed") then
+  local icon, hl, fallback = catalog.get(category, name, selected == "ascii")
+  if hl:match("^ThemeToolsIcon") then
     require("theme_tools.icons.highlights").setup()
   end
-  return catalog.get(category, name, selected == "ascii")
+  return icon, hl, fallback
 end
 
 ---Copied icon inventory for character insertion UIs; uses the managed provider.

@@ -253,6 +253,13 @@ Diagnostic names: `error`, `warn`, `info`, `hint`. Git names: `added`, `modified
 `collapsed`, `expanded`, `loading`. Unknown names return a category default with
 `is_fallback = true`; unknown categories are programming errors.
 Task names are `running`, `stopping`, `success`, `failure`, and `stopped`.
+UI action names also include `keymap`, `group`, `diagnostics`, `debug`, `git`,
+`terminal`, `format`, `rename`, `code`, `workspace`, `file`, `window`, `tab`, `save`,
+`toggle_on`, `toggle_off`, `register`, `mark`, `spell`, `fold`, `help`, `test`,
+`build`, `notification`, `theme`, `move`, `delete`, and `undo`. Their shared glyphs,
+ASCII labels and semantic colors are available to command menus such as
+keymap-tools. `ThemeToolsIconBlue/Cyan/Green/Orange/Purple/Red/Yellow` follow palette
+changes through private defaults while preserving explicit public overrides.
 Task success/failure reuse diagnostic ok/error glyphs.
 
 Overrides use `{ icon, hl?, ascii? }` per category/name. ASCII mode uses the optional

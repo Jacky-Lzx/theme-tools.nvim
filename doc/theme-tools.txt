@@ -294,6 +294,12 @@ defaults derived from the shared Git palette, preserving the surrounding surface
 Task names: running/stopping/success/failure/stopped. Failure and success reuse
 the error/ok symbols, so task counters and diagnostic/notification states agree.
 UI names: search/close/check/collapsed/expanded/loading.
+UI action names also include keymap/group/diagnostics/debug/git/terminal/format/
+rename/code/workspace/file/window/tab/save/toggle_on/toggle_off/register/mark/
+spell/fold/help/test/build/notification/theme/move/delete/undo. Action icons use
+shared ASCII fallbacks and foreground-only ThemeToolsIconBlue/Cyan/Green/Orange/
+Purple/Red/Yellow defaults from the semantic palette. Public overrides survive
+palette refreshes; private defaults update with the theme.
 Overrides are tables with icon, optional hl and optional ascii. ASCII mode uses
 ascii overrides or built-in text; none always hides icons.
 
@@ -303,9 +309,9 @@ removes its own subscription. User ThemeToolsIconsChanged carries the descriptor
 Only API consumers follow switches; direct upstream calls keep their own behavior.
 Actions return true or nil,error. Saving failures warn and retain the active choice.
 
-The maintained selection-tools, completion-tools, lsp-tools, ui-tools and
-notification-tools consumers follow this interface and redraw open views on a
-switch. Plugins using selection-tools inherit its file-icon switching. Structural
+The maintained selection-tools, completion-tools, lsp-tools, ui-tools,
+notification-tools and keymap-tools consumers follow this interface and redraw
+open views on a switch. Plugins using selection-tools inherit its file-icon switching. Structural
 text (graph lines, scrollbar tracks, document characters) is independent of icon
 display. Local icon-disable settings continue to apply.
 icons.catalog() returns copied {category,name,icon,hl} entries from the semantic
