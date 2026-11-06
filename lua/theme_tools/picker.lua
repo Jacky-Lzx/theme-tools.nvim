@@ -353,8 +353,13 @@ function M.open(themes, current, opts, confirm)
   vim.wo[session.list_win].wrap = false
   vim.wo[session.list_win].scrolloff = 0
   vim.b[session.input_buf].completion = false
-  local function map(keys, callback)
-    vim.keymap.set({ "n", "i" }, keys, callback, { buffer = session.input_buf, silent = true, nowait = true })
+  local function map(keys, callback, desc)
+    vim.keymap.set(
+      { "n", "i" },
+      keys,
+      callback,
+      { buffer = session.input_buf, silent = true, nowait = true, desc = desc }
+    )
   end
   local function move(step)
     -- Typeahead may invoke a mapping before TextChangedI has been dispatched.
@@ -367,18 +372,18 @@ function M.open(themes, current, opts, confirm)
   for _, key in ipairs({ "<Down>", "<C-n>", "<Tab>" }) do
     map(key, function()
       move(1)
-    end)
+    end, "Next theme")
   end
   for _, key in ipairs({ "<Up>", "<C-p>", "<S-Tab>" }) do
     map(key, function()
       move(-1)
-    end)
+    end, "Previous theme")
   end
   for _, key in ipairs({ "<Esc>", "<C-c>" }) do
-    map(key, M.close)
+    map(key, M.close, "Close theme picker")
   end
   if opts.on_group then
-    map("<C-g>", opts.on_group)
+    map("<C-g>", opts.on_group, "Choose theme group")
   end
   local transparency_key = transparency.key(opts)
   if opts.apply ~= false and transparency_key then
@@ -389,7 +394,7 @@ function M.open(themes, current, opts, confirm)
         transparency.toggle(theme, session.frames[theme.name])
         render(session)
       end
-    end)
+    end, "Toggle theme transparency")
   end
   if session.preview_buf then
     local function scroll(step)
@@ -401,10 +406,10 @@ function M.open(themes, current, opts, confirm)
     end
     map("<C-d>", function()
       scroll(6)
-    end)
+    end, "Scroll theme preview down")
     map("<C-u>", function()
       scroll(-6)
-    end)
+    end, "Scroll theme preview up")
   end
   map("<CR>", function()
     if active ~= session then
@@ -433,7 +438,7 @@ function M.open(themes, current, opts, confirm)
       finish(session, true)
       confirm(theme)
     end
-  end)
+  end, "Confirm theme selection")
   vim.api.nvim_create_autocmd({ "TextChangedI", "TextChanged" }, {
     group = session.group,
     buffer = session.input_buf,
