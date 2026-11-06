@@ -108,7 +108,8 @@ local function initialize()
   })
 end
 
-function M.setup(opts)
+function M.resolve_options(opts)
+  assert(opts == nil or type(opts) == "table", "palette must be a table")
   opts = opts or {}
   assert(type(opts) == "table", "palette must be a table")
   assert(
@@ -119,8 +120,19 @@ function M.setup(opts)
   for _, override in pairs(opts.themes or {}) do
     assert(type(override) == "table" or type(override) == "function", "invalid theme palette override")
   end
-  options = vim.deepcopy(opts)
+  return vim.deepcopy(opts)
+end
+
+function M.setup(opts)
+  options = M.resolve_options(opts)
   initialize()
+end
+
+function M.dispose()
+  generation = generation + 1
+  pending, initialized, current, depth = false, false, nil, 0
+  options = {}
+  pcall(vim.api.nvim_del_augroup_by_name, "theme_tools_palette")
 end
 
 function M.get()

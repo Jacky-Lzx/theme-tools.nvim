@@ -350,8 +350,9 @@ function M.commands()
   end
 end
 
-function M.setup(opts)
-  opts = opts or {}
+function M.resolve(opts)
+  assert(opts == nil or type(opts) == "table", "icons must be a table")
+  opts = vim.deepcopy(opts or {})
   assert(type(opts) == "table", "icons must be a table")
   local new = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
   assert(type(new.persist) == "boolean", "icons.persist must be boolean")
@@ -400,6 +401,22 @@ function M.setup(opts)
       )
     end
     assert(spec.commit == nil or #spec.commit == 40 and spec.commit:match("^%x+$"), "icon source requires full SHA")
+  end
+  return new
+end
+
+function M.dispose()
+  M.close()
+  pcall(vim.api.nvim_del_augroup_by_name, "theme_tools_icons")
+  config = vim.deepcopy(defaults)
+  failures = {}
+end
+
+function M.setup(opts)
+  local new = M.resolve(opts)
+  local seen = {}
+  for _, name in ipairs(new.providers) do
+    seen[name] = true
   end
   M.close()
   config = new

@@ -498,3 +498,14 @@ Commands belong to the plugin; choose global entry keys and short aliases in
 your configuration. Registration reports same-name conflicts without replacing
 user commands. Reconfiguration refreshes only commands still owned by this
 plugin, and cleanup preserves subsequent user replacements.
+
+## Setup contract
+
+`setup(nil)` uses defaults. Configuration must be a table; caller-owned tables
+are copied before use. Invalid configuration types do not replace live handlers
+or commands. Repeating setup must not accumulate automatic registrations.
+
+`dispose()` closes pickers, invalidates palette callbacks and removes owned
+commands/observers. It preserves the applied colorscheme, loaded providers and
+external palette/icon subscriptions. It does not unload sourced theme scripts.
+Palette and icon options are validated before replacing a live setup.

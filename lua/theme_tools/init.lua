@@ -327,7 +327,32 @@ function M.commands()
   end, { desc = "Download and load configured themes" })
 end
 
+function M.dispose()
+  M.close()
+  M.icons.dispose()
+  require("theme_tools.palette").dispose()
+  pcall(vim.api.nvim_del_augroup_by_name, "theme_tools_sources")
+  local commands = require("theme_tools.user_command")
+  for _, name in ipairs({
+    "ThemeTools",
+    "ThemeToolsInfo",
+    "ThemeToolsNext",
+    "ThemeToolsPrev",
+    "ThemeToolsInstall",
+    "ThemeToolsIcons",
+    "ThemeToolsIconsNext",
+    "ThemeToolsIconsPrev",
+    "ThemeToolsIconsInstall",
+    "ThemeToolsIconsUpdate",
+  }) do
+    commands.delete(name)
+  end
+  config = vim.deepcopy(defaults)
+end
+
 function M.setup(opts)
+  assert(opts == nil or type(opts) == "table", "theme-tools.nvim: setup expects a table")
+  opts = vim.deepcopy(opts or {})
   opts = opts or {}
   local new = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts)
   if opts.themes and opts.discover == nil then
@@ -359,6 +384,18 @@ function M.setup(opts)
   assert(type(new.install.timeout) == "number" and new.install.timeout > 0, "install.timeout must be positive")
   assert(opts.themes == nil or vim.islist(opts.themes), "themes must be a list")
   local themes = vim.tbl_map(normalize, opts.themes or {})
+  require("theme_tools.palette").resolve_options(new.palette)
+  local icon_options = M.icons.resolve(vim.tbl_deep_extend("force", {
+    persist = new.persist,
+    picker = {
+      backend = new.picker.backend,
+      selection = new.picker.selection,
+      width = new.picker.width,
+      height = new.picker.height,
+      border = new.picker.border,
+      preview_height = new.picker.preview_height,
+    },
+  }, opts.icons or {}))
   M.close()
   require("theme_tools.palette").setup(new.palette)
   config, registered, selected = new, {}, nil
@@ -368,17 +405,7 @@ function M.setup(opts)
     M.register(theme)
   end
   M.commands()
-  M.icons.setup(vim.tbl_deep_extend("force", {
-    persist = config.persist,
-    picker = {
-      backend = config.picker.backend,
-      selection = config.picker.selection,
-      width = config.picker.width,
-      height = config.picker.height,
-      border = config.picker.border,
-      preview_height = config.picker.preview_height,
-    },
-  }, opts.icons or {}))
+  M.icons.setup(icon_options)
   local group = vim.api.nvim_create_augroup("theme_tools_sources", { clear = true })
   for name, patterns in pairs(sources) do
     if config[name] ~= false then

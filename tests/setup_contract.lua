@@ -1,0 +1,33 @@
+vim.opt.rtp:prepend(vim.fn.getcwd())
+local plugin = require("theme_tools")
+local options = { themes = {}, discover = false, persist = false, catppuccin = false, dracula = false }
+local caller = vim.deepcopy(options)
+plugin.setup(options)
+assert(vim.deep_equal(caller, options), "setup mutated caller configuration")
+local commands = vim.api.nvim_get_commands({})
+local handlers = vim.api.nvim_get_autocmds({})
+assert(not pcall(plugin.setup, false), "setup(false) must reject an invalid configuration type")
+assert(vim.deep_equal(commands, vim.api.nvim_get_commands({})), "Invalid setup replaced commands")
+assert(vim.deep_equal(handlers, vim.api.nvim_get_autocmds({})), "Invalid setup replaced handlers")
+plugin.setup(caller)
+assert(#vim.api.nvim_get_autocmds({}) == #handlers, "Repeated setup duplicated automatic handlers")
+print("theme-tools.nvim: setup input isolation, invalid configuration and registration lifetime passed")
+
+local before = vim.api.nvim_get_autocmds({})
+assert(not pcall(plugin.setup, { palette = { overrides = false } }))
+assert(vim.deep_equal(before, vim.api.nvim_get_autocmds({})))
+assert(not pcall(plugin.setup, { icons = { providers = {} } }))
+assert(vim.deep_equal(before, vim.api.nvim_get_autocmds({})))
+local name = vim.g.colors_name
+local called = 0
+local off = require("theme_tools.palette").on_change("lifecycle", function()
+  called = called + 1
+end)
+plugin.dispose()
+plugin.dispose()
+assert(vim.g.colors_name == name)
+assert(vim.fn.exists("#theme_tools_sources") == 0 and vim.fn.exists("#theme_tools_palette") == 0)
+plugin.setup(caller)
+assert(called > 1, "Disposal removed an external palette subscriber")
+off()
+plugin.dispose()
