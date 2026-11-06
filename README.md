@@ -478,3 +478,9 @@ with temporary state, cache and lock files; set `THEME_TOOLS_NVIM_CONFIG` to its
 `tests/real_mocha.lua` compares all independent highlight groups and terminal
 colors against the configured original Mocha. Run it inside the complete personal
 configuration, after theme-tools setup.
+
+TeX and plain TeX semantic-token colors are defined by the themes: Tree-sitter
+supplies syntax colors, semantic variables retain `@variable`, and declaration
+modifiers do not add underlines. Other filetypes keep their normal semantic groups.
+The independent generated schemes contain these definitions directly; no per-buffer
+highlight reset is needed. Palette variants reuse the same custom groups.

@@ -1,6 +1,6 @@
 -- Personal Dracula highlights, applied after the inherited groups.
 return function(c)
-  return {
+  local groups = {
     Normal = { fg = c.fg },
     NormalFloat = { fg = c.fg },
     SignColumn = {},
@@ -26,4 +26,8 @@ return function(c)
     PmenuMatch = { fg = c.fg, bold = true },
     PmenuMatchSel = { bold = true },
   }
+  for name, value in pairs(require("theme_tools.languages.tex").groups()) do
+    groups[name] = value
+  end
+  return groups
 end

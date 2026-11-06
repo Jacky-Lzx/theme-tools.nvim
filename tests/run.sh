@@ -16,6 +16,7 @@ if [ -d ../ui-tools.nvim ] && [ -d ../completion-tools.nvim ] && [ -d ../lsp-too
 fi
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/integrations.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/mocha.lua
+"$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/tex_highlighting.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/dracula.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/palette.lua
 "$NVIM_BIN" --headless -n -u NONE -i NONE --noplugin -l tests/transparency.lua

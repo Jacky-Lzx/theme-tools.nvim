@@ -1,6 +1,6 @@
 -- Derived from Catppuccin Mocha (MIT); see LICENSE.catppuccin.
 return function(c)
-  return {
+  local groups = {
     ["CurSearch"] = { ["bg"] = c.mauve, ["fg"] = c.search_text },
     ["ThemeToolsAccent"] = { ["fg"] = c.blue },
     ["ThemeToolsGitAdd"] = { ["fg"] = c.green },
@@ -41,4 +41,8 @@ return function(c)
     ["UiToolsSearch"] = { ["fg"] = c.mauve },
     ["Visual"] = { ["bg"] = c.overlay0 },
   }
+  for name, value in pairs(require("theme_tools.languages.tex").groups()) do
+    groups[name] = value
+  end
+  return groups
 end
