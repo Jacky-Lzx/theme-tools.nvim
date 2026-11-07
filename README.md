@@ -509,3 +509,5 @@ or commands. Repeating setup must not accumulate automatic registrations.
 commands/observers. It preserves the applied colorscheme, loaded providers and
 external palette/icon subscriptions. It does not unload sourced theme scripts.
 Palette and icon options are validated before replacing a live setup.
+
+[Test workflow](tests/README.md): registered suites, filtering, required fixtures and retained failure evidence.

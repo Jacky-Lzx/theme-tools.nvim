@@ -1,0 +1,725 @@
+{
+  "version": 1,
+  "default": [
+    "unit",
+    "ui",
+    "format"
+  ],
+  "defaults": {},
+  "cases": [
+    {
+      "name": "runner-contracts",
+      "suite": "unit",
+      "command": [
+        "{python}",
+        "tests/runner_checks.py"
+      ],
+      "files": [
+        "tests/runner_checks.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "setup_contract",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/setup_contract.lua"
+      ],
+      "files": [
+        "tests/setup_contract.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "command_ownership",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/command_ownership.lua"
+      ],
+      "files": [
+        "tests/command_ownership.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "core",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/core.lua"
+      ],
+      "files": [
+        "tests/core.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "info",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/info.lua"
+      ],
+      "files": [
+        "tests/info.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "install",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/install.lua"
+      ],
+      "files": [
+        "tests/install.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "icons",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/icons.lua"
+      ],
+      "files": [
+        "tests/icons.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "git_icons",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/git_icons.lua"
+      ],
+      "files": [
+        "tests/git_icons.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "consumers",
+      "suite": "integration",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/consumers.lua"
+      ],
+      "files": [
+        "tests/consumers.lua"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua",
+        "path:{root}/../completion-tools.nvim/lua",
+        "path:{root}/../lsp-tools.nvim/lua",
+        "path:{root}/../ui-tools.nvim/lua",
+        "path:{root}/../notification-tools.nvim/lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "integrations",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/integrations.lua"
+      ],
+      "files": [
+        "tests/integrations.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "mocha",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/mocha.lua"
+      ],
+      "files": [
+        "tests/mocha.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "tex_highlighting",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/tex_highlighting.lua"
+      ],
+      "files": [
+        "tests/tex_highlighting.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "dracula",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/dracula.lua"
+      ],
+      "files": [
+        "tests/dracula.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "palette",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/palette.lua"
+      ],
+      "files": [
+        "tests/palette.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "transparency",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/transparency.lua"
+      ],
+      "files": [
+        "tests/transparency.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "scripts/build_mocha",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "scripts/build_mocha.lua",
+        "--check"
+      ],
+      "files": [
+        "scripts/build_mocha.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "scripts/build_dracula",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "scripts/build_dracula.lua",
+        "--check"
+      ],
+      "files": [
+        "scripts/build_dracula.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "selection",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/selection.lua"
+      ],
+      "files": [
+        "tests/selection.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "preview",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/preview.lua"
+      ],
+      "files": [
+        "tests/preview.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "icon_preview",
+      "suite": "unit",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-n",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-l",
+        "tests/icon_preview.lua"
+      ],
+      "files": [
+        "tests/icon_preview.lua"
+      ],
+      "timeout": 90
+    },
+    {
+      "name": "ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/ui.py"
+      ],
+      "files": [
+        "tests/ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "info_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/info_ui.py"
+      ],
+      "files": [
+        "tests/info_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "dracula_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/dracula_ui.py"
+      ],
+      "files": [
+        "tests/dracula_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../completion-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "surfaces_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/surfaces_ui.py"
+      ],
+      "files": [
+        "tests/surfaces_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../completion-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "palette_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/palette_ui.py"
+      ],
+      "files": [
+        "tests/palette_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "git_icons_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/git_icons_ui.py"
+      ],
+      "files": [
+        "tests/git_icons_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "search_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/search_ui.py"
+      ],
+      "files": [
+        "tests/search_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "transparency_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/transparency_ui.py"
+      ],
+      "files": [
+        "tests/transparency_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "selection_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/selection_ui.py"
+      ],
+      "files": [
+        "tests/selection_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "groups_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/groups_ui.py"
+      ],
+      "files": [
+        "tests/groups_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "window_ui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/window_ui.py"
+      ],
+      "files": [
+        "tests/window_ui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "picker_style_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/picker_style_ui.py"
+      ],
+      "files": [
+        "tests/picker_style_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "icon_preview_ui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/icon_preview_ui.py"
+      ],
+      "files": [
+        "tests/icon_preview_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "tui",
+      "suite": "ui",
+      "command": [
+        "{python}",
+        "tests/tui.py"
+      ],
+      "files": [
+        "tests/tui.py"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "icons_tui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/icons_tui.py"
+      ],
+      "files": [
+        "tests/icons_tui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "consumers_tui",
+      "suite": "integration",
+      "command": [
+        "{python}",
+        "tests/consumers_tui.py"
+      ],
+      "files": [
+        "tests/consumers_tui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua",
+        "path:{root}/../completion-tools.nvim/lua",
+        "path:{root}/../lsp-tools.nvim/lua",
+        "path:{root}/../ui-tools.nvim/lua",
+        "path:{root}/../notification-tools.nvim/lua"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "stylua",
+      "suite": "format",
+      "command": [
+        "stylua",
+        "--check",
+        "lua",
+        "plugin",
+        "colors",
+        "scripts",
+        "tests",
+        "examples"
+      ],
+      "files": [],
+      "timeout": 90
+    },
+    {
+      "name": "managed_icons_ui",
+      "suite": "compatibility",
+      "command": [
+        "{python}",
+        "tests/managed_icons_ui.py"
+      ],
+      "files": [
+        "tests/managed_icons_ui.py"
+      ],
+      "requires": [
+        "path:{root}/../selection-tools.nvim/lua",
+        "env:THEME_TOOLS_REAL_DATA",
+        "path:$THEME_TOOLS_REAL_DATA/themes/catppuccin",
+        "path:$THEME_TOOLS_REAL_DATA/icons/mini-icons"
+      ],
+      "timeout": 120
+    },
+    {
+      "name": "network-icons",
+      "suite": "acceptance",
+      "command": [
+        "{nvim}",
+        "--headless",
+        "-u",
+        "NONE",
+        "-i",
+        "NONE",
+        "--noplugin",
+        "-n",
+        "-l",
+        "tests/real_icons.lua"
+      ],
+      "files": [
+        "tests/real_icons.lua"
+      ],
+      "env": {
+        "THEME_TOOLS_ICON_ROOT": "{tmp}/icons"
+      },
+      "timeout": 180
+    }
+  ],
+  "support": {
+    "tests/grid_capture.py": "Loaded by tests/icon_preview_ui.py",
+    "tests/rpc.py": "Loaded by tests/icon_preview_ui.py",
+    "tests/run.sh": "Stable shell entry point for tests/run.py"
+  },
+  "manual": {
+    "tests/real_bars.lua": "Historical lazy.nvim/lualine/barbar configuration acceptance; current owned UI consumers run in the integration suite",
+    "tests/real_mocha.lua": "Interactive personal-configuration comparison against an installed Catppuccin theme",
+    "tests/configured_tui.py": "Personal-configuration acceptance; configuration-owned workflows are registered by the configuration repository",
+    "tests/real_integrations.lua": "Historical lazy.nvim/lualine/barbar configuration acceptance; current owned UI consumers run in the integration suite"
+  },
+  "fixtures": {
+    "completion-tools.nvim": {
+      "repository": "Jacky-Lzx/completion-tools.nvim",
+      "revision": "1e8c04216a6952295cad5c3514da2c85e119bbe7",
+      "path": "{root}/../completion-tools.nvim"
+    },
+    "lsp-tools.nvim": {
+      "repository": "Jacky-Lzx/lsp-tools.nvim",
+      "revision": "aa8654e4d5de2673c9fe03e1a613451954fc459a",
+      "path": "{root}/../lsp-tools.nvim"
+    },
+    "notification-tools.nvim": {
+      "repository": "Jacky-Lzx/notification-tools.nvim",
+      "revision": "a08f9fcfd9ac2e1cc6c25a4e1fe938b78b5f0cee",
+      "path": "{root}/../notification-tools.nvim"
+    },
+    "selection-tools.nvim": {
+      "repository": "Jacky-Lzx/selection-tools.nvim",
+      "revision": "1dff1fa0efa8614e784e457c79eefd2d257ba312",
+      "path": "{root}/../selection-tools.nvim"
+    },
+    "ui-tools.nvim": {
+      "repository": "Jacky-Lzx/ui-tools.nvim",
+      "revision": "b981c5ca8b9bc41d92ec01a048a18d993ef53e2a",
+      "path": "{root}/../ui-tools.nvim"
+    }
+  }
+}

@@ -62,6 +62,12 @@ assert(icons.set("none"))
 assert(not table.concat(api.nvim_buf_get_lines(screen.buf, 0, -1, false)):find("/ Search", 1, true))
 dashboard.close()
 
+-- A bufferline consumer needs a real listed editor buffer, not the empty
+-- startup placeholder restored after closing the dashboard.
+local editor = api.nvim_create_buf(true, false)
+api.nvim_set_current_buf(editor)
+api.nvim_buf_set_name(editor, vim.fn.tempname() .. ".lua")
+vim.bo[editor].filetype = "lua"
 local bufferline = require("ui_tools.bufferline")
 assert(icons.set("ascii"))
 bufferline.setup({ force = true, close_buttons = true, refresh = 0 })
