@@ -140,6 +140,11 @@ function M.open(items, current, opts, prepare, apply)
       apply(item.name)
     end
   end
+  if spec.components == nil then
+    spec.components = {
+      require("selection_tools.components").text({ get = spec.format_item, grow = 1, truncate = "match" }),
+    }
+  end
   local ok, picker = pcall(selection.open, spec)
   if not ok then
     release(session)

@@ -1,5 +1,7 @@
 # theme-tools.nvim
 
+The selection-tools theme and icon-provider pickers use text components and inherit `component_defaults.text`. Explicit `picker.selection.components` lists, including `{}` and `false`, remain supported.
+
 Theme selection, independent color palettes and shared icon display.
 
 ## Features

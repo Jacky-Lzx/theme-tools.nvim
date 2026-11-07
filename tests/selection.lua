@@ -41,6 +41,7 @@ vim.api.nvim_create_autocmd("User", {
 vim.api.nvim_set_hl(0, "UserCustom", { fg = "#123456", bold = true })
 assert(themes.pick())
 assert(picker:current().name == "habamax")
+assert(picker.components and picker.components.specs[1].kind == "text")
 assert(not picker.opts.resume and not picker.opts.multi and not picker.preview_win)
 picker:move(1)
 assert(vim.g.colors_name == "morning" and changed == 0)
