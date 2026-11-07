@@ -1,13 +1,48 @@
-*theme-tools.txt*  Live colorscheme switching for Neovim 0.11+
+*theme-tools.txt*	Theme selection, independent color palettes and shared icon display.
 
-CONTENTS                                              *theme-tools*
+==============================================================================
+CONTENTS                                                         *theme-tools*
 
-  Configuration  |theme-tools-config|
-  API            |theme-tools-api|
-  Icons          |theme-tools-icons|
-  Behavior       |theme-tools-behavior|
+  Quick start         |theme-tools-quickstart|
+  Commands            |theme-tools-commands|
+  Options             |theme-tools-options|
+  Lua API             |theme-tools-api|
+  Lifecycle           |theme-tools-lifecycle|
+  Troubleshooting     |theme-tools-troubleshooting|
 
-CONFIGURATION                                         *theme-tools-config*
+==============================================================================
+QUICK START                                           *theme-tools-quickstart*
+
+Requires Neovim 0.11+. No required plugin dependency for built-in themes and
+picker. Managed external themes/icons are installed explicitly.
+
+>lua
+    require("theme_tools").setup({ default = "theme-tools-mocha" })
+<
+
+The example above selects a small working setup. Full defaults, options and
+feature contracts are documented in this reference. Public installation and
+package-manager examples are in README.md.
+
+==============================================================================
+TROUBLESHOOTING                                  *theme-tools-troubleshooting*
+
+Check the minimum Neovim version and feature dependencies first. Global
+mappings shown in the README are configuration examples unless explicitly
+documented as plugin defaults. Keep one owner for each overridden UI or
+mapping.
+
+==============================================================================
+COMMANDS                                                *theme-tools-commands*
+
+:ThemeTools
+:ThemeToolsInfo
+
+See the workflow guide for usage examples and the detailed reference below for
+arguments and feature-specific commands.
+
+CONFIGURATION                                            *theme-tools-options*
+                                                          *theme-tools-config*
 >
   require("theme_tools").setup({
     catppuccin = { transparent_background = true }, -- passed to Catppuccin setup
@@ -52,177 +87,193 @@ Catppuccin selection installs it if missing, adds it to runtimepath and passes
 the catppuccin table to require("catppuccin").setup(). No separate Catppuccin
 plugin spec is needed. ColorSchemePre also supports direct :colorscheme calls.
 Use catppuccin=false to disable both managed installation and configuration.
-Sources initialize once per setup; selecting another theme skips them entirely.
-Register managed theme names explicitly to list them before their source loads.
+Sources initialize once per setup; selecting another theme skips them
+entirely. Register managed theme names explicitly to list them before their
+source loads.
 :ThemeToolsInstall explicitly installs and reconfigures all enabled sources.
 install("catppuccin") or install("dracula") targets one provider instead.
 
 Dracula uses https://github.com/Mofiqul/dracula.nvim at the revision pinned in
-theme_tools.providers.dracula. Register "dracula" or "dracula-soft" and pass its
-upstream options through dracula={...}. Its source downloads to
+theme_tools.providers.dracula. Register "dracula" or "dracula-soft" and pass
+its upstream options through dracula={...}. Its source downloads to
 install.root/dracula/<commit> and initializes only when selected or explicitly
-installed. dracula=false disables this managed source. Choosing one managed theme
-does not initialize the other; independent Mocha and Dracula require neither provider.
+installed. dracula=false disables this managed source. Choosing one managed
+theme does not initialize the other; independent Mocha and Dracula require
+neither provider.
 
-theme-tools-mocha is an independent personal theme derived from Mocha with a fixed
-set of integrations, transparent backgrounds and personal highlight overrides.
-Its generated colors file applies highlights directly; no Catppuccin modules,
-setup, integration detection, runtime compilation or cache validation run.
-Catppuccin options do not affect it. Edit lua/theme_tools/mocha/palette.lua and
-groups/*.lua, then run from the repository:
+theme-tools-mocha is an independent personal theme derived from Mocha with a
+fixed set of integrations, transparent backgrounds and personal highlight
+overrides. Its generated colors file applies highlights directly; no
+Catppuccin modules, setup, integration detection, runtime compilation or cache
+validation run. Catppuccin options do not affect it. Edit
+lua/theme_tools/mocha/palette.lua and groups/*.lua, then run from the
+repository:
 >
   nvim --headless -u NONE -l scripts/build_mocha.lua
 <
-Commit the source and generated colors/theme-tools-mocha.lua together. Generation
-is deterministic, offline and independent of upstream. vim.loader can cache the
-generated Lua source as local bytecode. The palette is also available through
-require("theme_tools.mocha.palette") for statusline components. See the README
-and LICENSE.catppuccin for provenance and maintenance details.
+Commit the source and generated colors/theme-tools-mocha.lua together.
+Generation is deterministic, offline and independent of upstream. vim.loader
+can cache the generated Lua source as local bytecode. The palette is also
+available through require("theme_tools.mocha.palette") for statusline
+components. See the README and LICENSE.catppuccin for provenance and
+maintenance details.
 
 theme-tools-dracula is an independent personal Dracula derived from
-Mofiqul/dracula.nvim at ae752c13e95fb7c5f58da4b5123cb804ea7568ee. It loads generated
-highlights without downloading or initializing the managed Dracula provider.
-dracula={...} options affect only the original dracula/dracula-soft themes.
-Its editor, floats and statusline are transparent by default; use a registered
-transparent=false preference or the picker toggle to make them opaque.
-PmenuSel sets only background and bold, preserving completion column colors.
-Edit lua/theme_tools/dracula/palette.lua and groups/*.lua, then run:
+Mofiqul/dracula.nvim at ae752c13e95fb7c5f58da4b5123cb804ea7568ee. It loads
+generated highlights without downloading or initializing the managed Dracula
+provider. dracula={...} options affect only the original dracula/dracula-soft
+themes. Its editor, floats and statusline are transparent by default; use a
+registered transparent=false preference or the picker toggle to make them
+opaque. PmenuSel sets only background and bold, preserving completion column
+colors. Edit lua/theme_tools/dracula/palette.lua and groups/*.lua, then run:
 >
   nvim --headless -u NONE -l scripts/build_dracula.lua
 <
 Commit those sources and colors/theme-tools-dracula.lua together. Its lualine
 auto theme uses the local palette without upstream setup. See LICENSE.dracula.
 
-When Lazy and vim.loader are active, integration detection uses Lazy's existing
-plugin inventory plus native vim.pack packages. Catppuccin receives resolved
-integration options with its own auto-detection disabled for that setup. Explicit
-integration settings retain upstream precedence. The inventory is read on each
-setup; plugin/profile changes are not cached. Pckr, disabled module caching and
-unrecognized environments retain the normal upstream detector. Catppuccin's own
-compiled theme cache and ColorScheme events remain in use.
+When Lazy and vim.loader are active, integration detection uses Lazy's
+existing plugin inventory plus native vim.pack packages. Catppuccin receives
+resolved integration options with its own auto-detection disabled for that
+setup. Explicit integration settings retain upstream precedence. The inventory
+is read on each setup; plugin/profile changes are not cached. Pckr, disabled
+module caching and unrecognized environments retain the normal upstream
+detector. Catppuccin's own compiled theme cache and ColorScheme events remain
+in use.
 
 The first download requires Git and network access. Subsequent startups reuse
 the installed revision without invoking Git or fetching. Source checkouts live
 under install.root/<source>/<commit>. A temporary directory is checked out and
 verified before it is published. Failed downloads clean up only their own
-temporary directories; an incomplete existing target is reported, not overwritten.
-The fixed revision is updated by updating theme-tools and restarting Neovim;
-no background updater runs.
-The install timeout bounds the complete Git operation. Other installed themes
-remain usable if a managed download fails. :ThemeToolsInstall retries downloads.
+temporary directories; an incomplete existing target is reported, not
+overwritten. The fixed revision is updated by updating theme-tools and
+restarting Neovim; no background updater runs. The install timeout bounds the
+complete Git operation. Other installed themes remain usable if a managed
+download fails. :ThemeToolsInstall retries downloads.
 
 Themes may be strings or tables. Names must be nonempty without whitespace;
 labels are for display only. Duplicate names replace the earlier definition
 while preserving its position. Width and height describe the complete bordered
-frame: values up to 1 are screen fractions; larger values are maximum cell counts.
-Builtin defaults are width=0.98, height=0.96, preview_height=0.6, with the preview
-above the list and the filter/counter at the bottom. Builtin icons inherit picker
-dimensions unless icons.picker overrides them. These defaults do not override
-the selection-tools layout. Border uses nvim_open_win() border syntax.
-The four explicit Catppuccin variants infer their light/dark background unless
-overridden. This prevents Catppuccin's remembered flavour from mistaking a later
-selection for a background-mode toggle after an independent theme was active.
-theme-tools-mocha, theme-tools-dracula, dracula and dracula-soft infer background="dark".
+frame: values up to 1 are screen fractions; larger values are maximum cell
+counts. Builtin defaults are width=0.98, height=0.96, preview_height=0.6, with
+the preview above the list and the filter/counter at the bottom. Builtin icons
+inherit picker dimensions unless icons.picker overrides them. These defaults
+do not override the selection-tools layout. Border uses nvim_open_win() border
+syntax. The four explicit Catppuccin variants infer their light/dark
+background unless overridden. This prevents Catppuccin's remembered flavour
+from mistaking a later selection for a background-mode toggle after an
+independent theme was active. theme-tools-mocha, theme-tools-dracula, dracula
+and dracula-soft infer background="dark".
 
-By default picker.group_by_background=true separates dark and light theme lists.
-The active theme's category opens first. Ctrl-G opens a category menu; highlighting
-a category does not preview anything. Enter opens that category's themes. Group
-selection never writes theme state or emits ThemeToolsChanged. The default window
-preview keeps the editor unchanged. Themes without background metadata appear in
-Unclassified and can also be inspected in the sample window. In legacy live mode,
-empty searches retain the last preview and unknown themes apply only on Enter.
-Set a theme's background="dark" or "light" to classify it.
-picker.group_by_background=false uses a combined list without changing preview mode.
-Ctrl-G is local to grouped theme pickers; no global mappings are installed.
+By default picker.group_by_background=true separates dark and light theme
+lists. The active theme's category opens first. Ctrl-G opens a category menu;
+highlighting a category does not preview anything. Enter opens that category's
+themes. Group selection never writes theme state or emits ThemeToolsChanged.
+The default window preview keeps the editor unchanged. Themes without
+background metadata appear in Unclassified and can also be inspected in the
+sample window. In legacy live mode, empty searches retain the last preview and
+unknown themes apply only on Enter. Set a theme's background="dark" or "light"
+to classify it. picker.group_by_background=false uses a combined list without
+changing preview mode. Ctrl-G is local to grouped theme pickers; no global
+mappings are installed.
 
 picker.preview_mode="window" renders the selected theme in a sample pane. It
-contains syntax, search, visual selection, diagnostics, completion, diff, statusline
-and floating-window examples. Theme code and before callbacks run in an embedded
-background Neovim, and only the sample window receives its highlight namespace.
-The host theme, background, terminal globals and selection state stay unchanged.
-Enter applies and saves the actual theme, even if the sample is not ready yet.
-The worker and cached samples live only for that picker; cancellation stops the
-worker, and outdated responses cannot paint a closed or newer selection.
-No preview code or child process is loaded at startup.
+contains syntax, search, visual selection, diagnostics, completion, diff,
+statusline and floating-window examples. Theme code and before callbacks run
+in an embedded background Neovim, and only the sample window receives its
+highlight namespace. The host theme, background, terminal globals and
+selection state stay unchanged. Enter applies and saves the actual theme, even
+if the sample is not ready yet. The worker and cached samples live only for
+that picker; cancellation stops the worker, and outdated responses cannot
+paint a closed or newer selection. No preview code or child process is loaded
+at startup.
 
-Ctrl-D/Ctrl-U scroll the builtin pane; selection-tools inherits its preview keys.
-On very small terminals the sample is hidden. Transparent themes use a solid
-preview canvas; actual application retains their configured transparency.
-Ctrl-T toggles transparency for the selected theme in either picker. The title
-and sample report on/off (or default until the native setting is resolved). The
-sample keeps a solid canvas; its label reports the actual mode to be applied.
-Window mode leaves the host unchanged. Live mode updates the editor and shared
-palette subscribers immediately. Enter applies and saves only the selected
-theme's preference; Escape cancels. Group/category menus have no transparency key.
+Ctrl-D/Ctrl-U scroll the builtin pane; selection-tools inherits its preview
+keys. On very small terminals the sample is hidden. Transparent themes use a
+solid preview canvas; actual application retains their configured
+transparency. Ctrl-T toggles transparency for the selected theme in either
+picker. The title and sample report on/off (or default until the native
+setting is resolved). The sample keeps a solid canvas; its label reports the
+actual mode to be applied. Window mode leaves the host unchanged. Live mode
+updates the editor and shared palette subscribers immediately. Enter applies
+and saves only the selected theme's preference; Escape cancels. Group/category
+menus have no transparency key.
 
 Preferences are stored per registered theme ID in the existing selection.json
-file and restore on startup and later Theme Tools switches. Old name-only state
-files retain native settings. A theme's optional transparent=true/false supplies
-a default; saved choices take precedence. Explicit choices are applied after the
-colorscheme and synchronous ColorScheme overrides, including editor, float,
-gutter and unaccented bar backgrounds. Selection/search and mode accents remain.
-Unknown themes use standard backgrounds with an opaque fallback when needed.
+file and restore on startup and later Theme Tools switches. Old name-only
+state files retain native settings. A theme's optional transparent=true/false
+supplies a default; saved choices take precedence. Explicit choices are
+applied after the colorscheme and synchronous ColorScheme overrides, including
+editor, float, gutter and unaccented bar backgrounds. Selection/search and
+mode accents remain. Unknown themes use standard backgrounds with an opaque
+fallback when needed.
 
 picker.transparency_key accepts a mapping string (default <C-t>) or false.
 persist=false keeps confirmed choices only until the next setup. Browsing and
-cancelled edits never write preferences. No theme-provider options are mutated.
+cancelled edits never write preferences. No theme-provider options are
+mutated.
 
 Set picker.preview_mode="live" to restore editor-wide previews instead.
 
 Host ColorScheme autocommands do not run in the worker. Use an optional
-picker.preview_after=function(theme) ... end to mirror custom highlight overrides.
-This callback runs after the worker loads the theme. Lua closures and their
-upvalues are copied; C functions, userdata and host-only state cannot be transferred.
-Errors appear in the pane without applying the theme. Enter still attempts the
-normal application; a failed application cannot be committed or saved.
+picker.preview_after=function(theme) ... end to mirror custom highlight
+overrides. This callback runs after the worker loads the theme. Lua closures
+and their upvalues are copied; C functions, userdata and host-only state
+cannot be transferred. Errors appear in the pane without applying the theme.
+Enter still attempts the normal application; a failed application cannot be
+committed or saved.
 
 Samples include file/LSP icons, Copilot completion, task states and semantic
-Git/diagnostic statusline counts. Icon samples use the selected display policy and
-cached provider files; previewing never downloads icons or changes host icon state.
+Git/diagnostic statusline counts. Icon samples use the selected display policy
+and cached provider files; previewing never downloads icons or changes host
+icon state.
 
 Set picker.backend="selection_tools" to use selection-tools.nvim (requires its
-on_change API). Theme and icon pickers call selection_tools.open(), inheriting the
-global layout/matcher/keys like selection_tools.files(). Window dimensions, preview
-proportion, input position, border and reverse list order follow selection-tools.
-The compact select.layout profile is bypassed. picker.selection accepts explicit
-per-picker layout/matcher/keys overrides; omitted fields remain inherited.
-The active theme appears first. Width/height/border above apply to the builtin
-backend. Both backends share preview, persistence and cancellation semantics;
-selection-tools owns selection, window lifecycle and navigation for its backend.
-Resume, multiple selection and file-opening/export actions are disabled for
-theme pickers so callbacks remain tied to the current preview session.
+on_change API). Theme and icon pickers call selection_tools.open(), inheriting
+the global layout/matcher/keys like selection_tools.files(). Window
+dimensions, preview proportion, input position, border and reverse list order
+follow selection-tools. The compact select.layout profile is bypassed.
+picker.selection accepts explicit per-picker layout/matcher/keys overrides;
+omitted fields remain inherited. The active theme appears first.
+Width/height/border above apply to the builtin backend. Both backends share
+preview, persistence and cancellation semantics; selection-tools owns
+selection, window lifecycle and navigation for its backend. Resume, multiple
+selection and file-opening/export actions are disabled for theme pickers so
+callbacks remain tied to the current preview session.
 
-setup() replaces earlier configuration and registrations, cancels an open picker,
-and restores an available saved ID, falling back to default. With neither, the
-current colorscheme stays active. persist=false disables both reading and writing
-state. Corrupt state is ignored with a warning. Unavailable saved IDs are ignored.
-If a saved theme fails to load, its error is reported and the prior palette is
-restored. State stores the theme ID and per-theme transparency choices; it never stores
-or evaluates Lua code.
+setup() replaces earlier configuration and registrations, cancels an open
+picker, and restores an available saved ID, falling back to default. With
+neither, the current colorscheme stays active. persist=false disables both
+reading and writing state. Corrupt state is ignored with a warning.
+Unavailable saved IDs are ignored. If a saved theme fails to load, its error
+is reported and the prior palette is restored. State stores the theme ID and
+per-theme transparency choices; it never stores or evaluates Lua code.
 
 Before callbacks can call require("lazy").load({plugins={"theme-name"}}) or a
-theme's setup() if needed. Colorschemes on runtimepath need no adapter. Explicit
-themes can be autoloaded by lazy.nvim even before they appear in discovery.
+theme's setup() if needed. Colorschemes on runtimepath need no adapter.
+Explicit themes can be autoloaded by lazy.nvim even before they appear in
+discovery.
 
-ICONS                                                 *theme-tools-icons*
+ICONS                                                      *theme-tools-icons*
 
 :ThemeToolsIcons opens a searchable display/provider picker with samples.
-Choices: mini (mini.icons), devicons (nvim-web-devicons, default), ascii, none.
-Enter applies and saves; Escape cancels. Browsing leaves the active icons and saved
-choice unchanged. The top pane shows 100+ actual lookups: files, directories,
-diagnostics, Git, UI, LSP completion/symbol types and operating systems. A responsive
-column grid displays the provider's glyphs/colors; ascii/none show text/empty icons.
-Ctrl-D/Ctrl-U scroll in both backends. Override selection-tools keys through
+Choices: mini (mini.icons), devicons (nvim-web-devicons, default), ascii,
+none. Enter applies and saves; Escape cancels. Browsing leaves the active
+icons and saved choice unchanged. The top pane shows 100+ actual lookups:
+files, directories, diagnostics, Git, UI, LSP completion/symbol types and
+operating systems. A responsive column grid displays the provider's
+glyphs/colors; ascii/none show text/empty icons. Ctrl-D/Ctrl-U scroll in both
+backends. Override selection-tools keys through
 icons.picker.selection.keys.preview_down/preview_up.
 
-A disposable background Neovim handles provider setup, pinned downloads and icon
-lookups. First preview may install the source; installed revisions work offline.
-Highlight namespaces keep colors inside the sample. Host modules, icon consumers
-and selection state are unchanged until Enter. Stale requests cannot paint the
-latest choice, and cancellation stops the worker. Preview errors appear inside
-the pane; failed confirmation keeps the picker open and the previous choice active.
-The theme picker backend/selection settings are inherited; icons.picker overrides
-them. No global key mappings are installed.
+A disposable background Neovim handles provider setup, pinned downloads and
+icon lookups. First preview may install the source; installed revisions work
+offline. Highlight namespaces keep colors inside the sample. Host modules,
+icon consumers and selection state are unchanged until Enter. Stale requests
+cannot paint the latest choice, and cancellation stops the worker. Preview
+errors appear inside the pane; failed confirmation keeps the picker open and
+the previous choice active. The theme picker backend/selection settings are
+inherited; icons.picker overrides them. No global key mappings are installed.
 >
   require("theme_tools").setup({
     icons = {
@@ -243,27 +294,31 @@ them. No global key mappings are installed.
   })
 <
 icons.persist inherits persist. Icon choices are saved separately from themes.
-Setup only restores the provider ID. First get()/preview/set() downloads the selected
-provider from its official Git repository at a fixed SHA. Installed checkouts
-are reused offline; ascii/none need no download. Lazy lookup failures warn once
-and return built-in glyphs. set()/install() can retry. No separate provider specs
-are needed. Remove duplicate specs/setup when transferring ownership here.
+Setup only restores the provider ID. First get()/preview/set() downloads the
+selected provider from its official Git repository at a fixed SHA. Installed
+checkouts are reused offline; ascii/none need no download. Lazy lookup
+failures warn once and return built-in glyphs. set()/install() can retry. No
+separate provider specs are needed. Remove duplicate specs/setup when
+transferring ownership here.
 
 :ThemeToolsIcons mini                 Apply a provider by ID
 :ThemeToolsIconsNext / Prev           Cycle in configured order (full prefix)
 :ThemeToolsIconsInstall [provider]    Install one or all configured providers
-:ThemeToolsIconsUpdate [provider]     Resolve upstream and install a new revision
+:ThemeToolsIconsUpdate [provider]     Resolve upstream and install a new
+revision
 
-Updates verify complete checkouts before saving a revision and keep old checkouts.
-Loaded modules activate updates on restart. No background updates run. Existing
-upstream modules loaded elsewhere are reused until restart. icons.sources.mini
-and .devicons accept url/commit/ref for mirrors/pins; commit is a full SHA, ref
-is used by explicit updates. A saved update takes precedence over the initial pin.
-Timeout bounds each Git resolution or download operation in milliseconds.
+Updates verify complete checkouts before saving a revision and keep old
+checkouts. Loaded modules activate updates on restart. No background updates
+run. Existing upstream modules loaded elsewhere are reused until restart.
+icons.sources.mini and .devicons accept url/commit/ref for mirrors/pins;
+commit is a full SHA, ref is used by explicit updates. A saved update takes
+precedence over the initial pin. Timeout bounds each Git resolution or
+download operation in milliseconds.
 
-Managed mini.icons participates in Catppuccin's automatic theme integrations even
-without a separate plugin-manager entry. Explicit integrations.mini=false,
-integrations.mini.enabled=false and auto_integrations=false remain respected.
+Managed mini.icons participates in Catppuccin's automatic theme integrations
+even without a separate plugin-manager entry. Explicit
+integrations.mini=false, integrations.mini.enabled=false and
+auto_integrations=false remain respected.
 >
   local icons = require("theme_tools").icons -- or require("theme_tools.icons")
   local icon, hl, is_fallback = icons.get("file", "/project/init.lua")
@@ -282,45 +337,48 @@ integrations.mini.enabled=false and auto_integrations=false remain respected.
   icons.update("mini")          -- resolve/download and save a new revision
 <
 get() always returns a string icon, highlight group and fallback boolean. none
-returns an empty string; add padding only for nonempty icons. Supported categories:
-file (full path), extension (no dot), filetype, directory, os, lsp (completion kind
-name, e.g. Function), diagnostic, git, task, ui. Missing provider data uses shared
-semantic defaults. Unknown names return the category default with fallback=true;
-unknown categories raise an error.
-Diagnostic names: error/warn/info/hint.
-Git names: added/modified/removed/branch/conflict/untracked.
-Added/modified/removed use foreground-only ThemeToolsIconGitAdd/Change/Delete
-defaults derived from the shared Git palette, preserving the surrounding surface.
-Task names: running/stopping/success/failure/stopped. Failure and success reuse
-the error/ok symbols, so task counters and diagnostic/notification states agree.
-UI names: search/close/check/collapsed/expanded/loading.
-UI action names also include keymap/group/diagnostics/debug/git/terminal/format/
+returns an empty string; add padding only for nonempty icons. Supported
+categories: file (full path), extension (no dot), filetype, directory, os, lsp
+(completion kind name, e.g. Function), diagnostic, git, task, ui. Missing
+provider data uses shared semantic defaults. Unknown names return the category
+default with fallback=true; unknown categories raise an error. Diagnostic
+names: error/warn/info/hint. Git names:
+added/modified/removed/branch/conflict/untracked. Added/modified/removed use
+foreground-only ThemeToolsIconGitAdd/Change/Delete defaults derived from the
+shared Git palette, preserving the surrounding surface. Task names:
+running/stopping/success/failure/stopped. Failure and success reuse the
+error/ok symbols, so task counters and diagnostic/notification states agree.
+UI names: search/close/check/collapsed/expanded/loading. UI action names also
+include keymap/group/diagnostics/debug/git/terminal/format/
 rename/code/workspace/file/window/tab/save/toggle_on/toggle_off/register/mark/
-spell/fold/help/test/build/notification/theme/move/delete/undo. Action icons use
-shared ASCII fallbacks and foreground-only ThemeToolsIconBlue/Cyan/Green/Orange/
-Purple/Red/Yellow defaults from the semantic palette. Public overrides survive
-palette refreshes; private defaults update with the theme.
-Overrides are tables with icon, optional hl and optional ascii. ASCII mode uses
-ascii overrides or built-in text; none always hides icons.
+spell/fold/help/test/build/notification/theme/move/delete/undo. Action icons
+use shared ASCII fallbacks and foreground-only
+ThemeToolsIconBlue/Cyan/Green/Orange/ Purple/Red/Yellow defaults from the
+semantic palette. Public overrides survive palette refreshes; private defaults
+update with the theme. Overrides are tables with icon, optional hl and
+optional ascii. ASCII mode uses ascii overrides or built-in text; none always
+hides icons.
 
 on_change runs immediately and after display/theme changes, survives setup(),
-replaces by ID, isolates descriptors, and catches callback errors. Cleanup only
-removes its own subscription. User ThemeToolsIconsChanged carries the descriptor.
-Only API consumers follow switches; direct upstream calls keep their own behavior.
-Actions return true or nil,error. Saving failures warn and retain the active choice.
+replaces by ID, isolates descriptors, and catches callback errors. Cleanup
+only removes its own subscription. User ThemeToolsIconsChanged carries the
+descriptor. Only API consumers follow switches; direct upstream calls keep
+their own behavior. Actions return true or nil,error. Saving failures warn and
+retain the active choice.
 
 The maintained selection-tools, completion-tools, lsp-tools, ui-tools,
 notification-tools and keymap-tools consumers follow this interface and redraw
-open views on a switch. Plugins using selection-tools inherit its file-icon switching. Structural
-text (graph lines, scrollbar tracks, document characters) is independent of icon
-display. Local icon-disable settings continue to apply.
-icons.catalog() returns copied {category,name,icon,hl} entries from the semantic
-set/current managed provider, for character insertion. ASCII returns text entries;
-none returns an empty inventory. Both LSP CompletionItemKind and SymbolKind names
-are supported. Extra diagnostic names: ok/debug/trace. Extra UI names:
+open views on a switch. Plugins using selection-tools inherit its file-icon
+switching. Structural text (graph lines, scrollbar tracks, document
+characters) is independent of icon display. Local icon-disable settings
+continue to apply. icons.catalog() returns copied {category,name,icon,hl}
+entries from the semantic set/current managed provider, for character
+insertion. ASCII returns text entries; none returns an empty inventory. Both
+LSP CompletionItemKind and SymbolKind names are supported. Extra diagnostic
+names: ok/debug/trace. Extra UI names:
 cancelled/lightbulb/cycle/bullet/previous/next.
 
-API                                                   *theme-tools-api*
+API                                                          *theme-tools-api*
 >
   local themes = require("theme_tools")
   themes.pick()                     -- open a searchable live preview
@@ -339,14 +397,15 @@ API                                                   *theme-tools-api*
   themes.off_change("plugin-id")    -- remove a subscription
   themes.refresh_palette()          -- refresh after manual highlight edits
 <
-install(), pick(), set(), next() and prev() return true on success or nil, error
-on failure.
-Commands report these errors with vim.notify(). A failed actual theme application
-cannot be confirmed. Saving errors warn while keeping the successfully applied theme.
-close() is also called before direct switching/cycling. register() affects the
-next picker opening; it does not modify an already open picker's list.
+install(), pick(), set(), next() and prev() return true on success or nil,
+error on failure. Commands report these errors with vim.notify(). A failed
+actual theme application cannot be confirmed. Saving errors warn while keeping
+the successfully applied theme. close() is also called before direct
+switching/cycling. register() affects the next picker opening; it does not
+modify an already open picker's list.
 
-After a confirmed selection or successful direct application, this event fires:
+After a confirmed selection or successful direct application, this event
+fires:
 >
   vim.api.nvim_create_autocmd("User", {
     pattern = "ThemeToolsChanged",
@@ -355,44 +414,48 @@ After a confirmed selection or successful direct application, this event fires:
     end,
   })
 <
-In window mode, host ColorScheme events run only when applying a theme. In legacy
-live mode they also run during preview and restoration. ThemeToolsChanged is emitted only
-when committing a selection (including startup restore/default), never merely
-for previews or cancellation. Use an adaptive statusline theme if you want it
-to follow colorscheme changes rather than holding a fixed theme palette.
+In window mode, host ColorScheme events run only when applying a theme. In
+legacy live mode they also run during preview and restoration.
+ThemeToolsChanged is emitted only when committing a selection (including
+startup restore/default), never merely for previews or cancellation. Use an
+adaptive statusline theme if you want it to follow colorscheme changes rather
+than holding a fixed theme palette.
 
-DIAGNOSTICS                                           *:ThemeToolsInfo*
+DIAGNOSTICS                                                  *:ThemeToolsInfo*
 
-:ThemeToolsInfo [highlight] opens a read-only scratch split with the registered
-theme ID, applied colorscheme, background/transparency, icon provider status,
-final semantic palette and global highlight links/attributes. The optional
-highlight name has native completion and narrows the highlight section.
-Undefined groups and link cycles are reported without creating missing groups.
-Press r to re-read the report; q or Escape closes it and returns to the source.
-It does not apply themes, refresh palette subscribers, save preferences, or
-prepare/download icon providers. After manual highlight edits, explicitly call
-refresh_palette() if the semantic roles should also change.
+:ThemeToolsInfo [highlight] opens a read-only scratch split with the
+registered theme ID, applied colorscheme, background/transparency, icon
+provider status, final semantic palette and global highlight links/attributes.
+The optional highlight name has native completion and narrows the highlight
+section. Undefined groups and link cycles are reported without creating
+missing groups. Press r to re-read the report; q or Escape closes it and
+returns to the source. It does not apply themes, refresh palette subscribers,
+save preferences, or prepare/download icon providers. After manual highlight
+edits, explicitly call refresh_palette() if the semantic roles should also
+change.
 
 info({groups={...}}) returns copied {theme, icons, palette, highlights} data.
 theme contains id, colorscheme, background and transparent; id/colorscheme can
 be nil for an unregistered/default theme. icons contains name, enabled, style,
 loaded and an optional provider error. Each highlights entry contains name,
 chain, attributes and status (defined/undefined/cycle). With no groups option,
-the report includes common editor, popup and local-plugin groups.
-icons.info() returns only the provider descriptor/status without loading it.
+the report includes common editor, popup and local-plugin groups. icons.info()
+returns only the provider descriptor/status without loading it.
 
-SHARED PALETTE                                        *theme-tools-palette*
+SHARED PALETTE                                           *theme-tools-palette*
 
-palette() returns {name, background, transparent, palette, ui, diagnostic, git}.
-Colors are #rrggbb strings. UI background fields may be "NONE". ui.search_fg
-may also be "NONE": preserve the underlying text color for background-only
-search highlights. Pass it through to nvim_set_hl rather than substituting a color.
-The opaque palette.bg is separate from the actual ui.bg used for transparency.
-sidebar_bg inherits the editor background unless ThemeToolsSidebar defines one.
-float_bg and menu_bg follow NormalFloat/Pmenu independently, including transparency.
+palette() returns {name, background, transparent, palette, ui, diagnostic,
+git}. Colors are #rrggbb strings. UI background fields may be "NONE".
+ui.search_fg may also be "NONE": preserve the underlying text color for
+background-only search highlights. Pass it through to nvim_set_hl rather than
+substituting a color. The opaque palette.bg is separate from the actual ui.bg
+used for transparency. sidebar_bg inherits the editor background unless
+ThemeToolsSidebar defines one. float_bg and menu_bg follow NormalFloat/Pmenu
+independently, including transparency.
 
   palette: bg, fg, red, orange, yellow, green, cyan, blue, purple, pink
-  ui: fg, bg, sidebar_bg, float_fg, float_bg, menu_fg, menu_bg, muted, subtle, border, accent,
+  ui: fg, bg, sidebar_bg, float_fg, float_bg, menu_fg, menu_bg, muted, subtle,
+      border, accent,
       selection_fg, selection_bg, search_fg, search_bg, cursorline_bg
   diagnostic: error, warn, info, hint, ok
   git: add, change, delete
@@ -406,37 +469,42 @@ float_bg and menu_bg follow NormalFloat/Pmenu independently, including transpare
   -- stop() or themes.off_change("my-plugin") to unsubscribe.
 <
 Registration invokes the callback immediately. Later managed theme changes,
-previews and restoration invoke it after all synchronous colorscheme overrides.
-Direct :colorscheme calls notify on the next scheduled turn; bursts coalesce.
-Each caller receives a copy. Named registrations replace older callbacks without
-losing subscriptions across setup(). Errors warn without blocking other plugins.
-An old cleanup function cannot unsubscribe a newer callback with the same ID.
-Callbacks must not switch themes recursively. Register during plugin setup and
-invalidate cached colors here, rather than resolving palettes during redraws.
+previews and restoration invoke it after all synchronous colorscheme
+overrides. Direct :colorscheme calls notify on the next scheduled turn; bursts
+coalesce. Each caller receives a copy. Named registrations replace older
+callbacks without losing subscriptions across setup(). Errors warn without
+blocking other plugins. An old cleanup function cannot unsubscribe a newer
+callback with the same ID. Callbacks must not switch themes recursively.
+Register during plugin setup and invalidate cached colors here, rather than
+resolving palettes during redraws.
 
 Mocha, loaded Catppuccin and loaded Dracula use adapters. Other themes derive
-colors from standard highlights with complete fallbacks. No inactive provider is
-loaded. Standard highlight overrides affect semantic roles. For manual highlight
-changes outside ColorScheme, call refresh_palette(). Palette resolution is lazy.
+colors from standard highlights with complete fallbacks. No inactive provider
+is loaded. Standard highlight overrides affect semantic roles. For manual
+highlight changes outside ColorScheme, call refresh_palette(). Palette
+resolution is lazy.
 
-ThemeToolsAccent explicitly defines the interface accent independently of syntax.
-The independent themes use blue for Mocha and purple for Dracula. Shared Git roles
-come from ThemeToolsGitAdd/Change/Delete; GitTools signs link to the same groups.
-Override those public groups in ColorScheme and refresh_palette() after manual
-edits to update subscribed UI consumers. Unknown themes retain standard fallbacks.
+ThemeToolsAccent explicitly defines the interface accent independently of
+syntax. The independent themes use blue for Mocha and purple for Dracula.
+Shared Git roles come from ThemeToolsGitAdd/Change/Delete; GitTools signs link
+to the same groups. Override those public groups in ColorScheme and
+refresh_palette() after manual edits to update subscribed UI consumers.
+Unknown themes retain standard fallbacks.
 
-setup({palette={overrides=..., themes={...}}}) accepts a global partial override
-followed by an override keyed by applied colorscheme name (not registered alias).
-Each override is a partial table or function(c) returning one. Invalid values
-warn and retain the previous valid values. Theme metadata is read-only;
-transparent is derived from ui.bg. Overrides affect this API, not the original
-colorscheme highlights. Isolated previews never notify host subscribers.
+setup({palette={overrides=..., themes={...}}}) accepts a global partial
+override followed by an override keyed by applied colorscheme name (not
+registered alias). Each override is a partial table or function(c) returning
+one. Invalid values warn and retain the previous valid values. Theme metadata
+is read-only; transparent is derived from ui.bg. Overrides affect this API,
+not the original colorscheme highlights. Isolated previews never notify host
+subscribers.
 
-User ThemeToolsReady fires after setup for optional, earlier-loaded integrations.
-The API can also be used before setup. ThemeToolsChanged retains its existing
-selection/persistence semantics and is not the palette notification mechanism.
+User ThemeToolsReady fires after setup for optional, earlier-loaded
+integrations. The API can also be used before setup. ThemeToolsChanged retains
+its existing selection/persistence semantics and is not the palette
+notification mechanism.
 
-BEHAVIOR                                              *theme-tools-behavior*
+BEHAVIOR                                                *theme-tools-behavior*
 
 Cancellation restores the opening colorscheme, 'background', global highlight
 definitions (including manual overrides), g:colors_name and g:terminal_color_0
@@ -445,13 +513,39 @@ g:terminal_color_foreground. Failed loads restore the last successful palette.
 No state is saved while browsing, filtering, resizing or cancelling.
 
 This restoration covers colors, not arbitrary side effects from theme scripts,
-before callbacks or ColorScheme autocommands. Avoid callbacks that mutate buffers
-or unrelated editor options. Existing terminal jobs may retain their own colors.
-The picker exits Insert mode when it closes and leaves source text unchanged.
+before callbacks or ColorScheme autocommands. Avoid callbacks that mutate
+buffers or unrelated editor options. Existing terminal jobs may retain their
+own colors. The picker exits Insert mode when it closes and leaves source text
+unchanged.
 
-The plugin loads no themes or mappings just from require("theme_tools"). Normal
-plugin loading installs :ThemeTools, :ThemeToolsNext, :ThemeToolsPrev,
+The plugin loads no themes or mappings just from require("theme_tools").
+Normal plugin loading installs :ThemeTools, :ThemeToolsNext, :ThemeToolsPrev,
 :ThemeToolsInstall and :ThemeToolsInfo. setup() also installs them and is
 required on startup to restore saved choices.
+
+==============================================================================
+COMMAND OWNERSHIP                    *theme-tools-reference-command-ownership*
+
+Commands belong to the plugin; choose global entry keys and short aliases in
+your configuration. Registration reports same-name conflicts without replacing
+user commands. Reconfiguration refreshes only commands still owned by this
+plugin, and cleanup preserves subsequent user replacements.
+
+==============================================================================
+SETUP CONTRACT                                         *theme-tools-lifecycle*
+                                        *theme-tools-reference-setup-contract*
+
+`setup(nil)` uses defaults. Configuration must be a table; caller-owned tables
+are copied before use. Invalid configuration types do not replace live
+handlers or commands. Repeating setup must not accumulate automatic
+registrations.
+
+`dispose()` closes pickers, invalidates palette callbacks and removes owned
+commands/observers. It preserves the applied colorscheme, loaded providers and
+external palette/icon subscriptions. It does not unload sourced theme scripts.
+Palette and icon options are validated before replacing a live setup.
+
+Test workflow (tests/README.md): registered suites, filtering, required
+fixtures and retained failure evidence.
 
 vim:tw=78:ts=8:noet:ft=help:norl:
